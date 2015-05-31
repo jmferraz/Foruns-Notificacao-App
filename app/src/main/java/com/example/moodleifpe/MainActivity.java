@@ -56,7 +56,10 @@ public class MainActivity extends AppCompatActivity {
         textView.setMovementMethod(new ScrollingMovementMethod());
 
         enableCookies();
+        authenticateToEndpoint();
+    }
 
+    private void authenticateToEndpoint() {
         service.auth(USERNAME, PASSWORD, new Callback<Response>() {
             @Override
             public void success(Response result, Response response) {
