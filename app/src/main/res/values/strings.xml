@@ -3,4 +3,7 @@
 
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
+    <string name="no_courses">Usuário não está matriculado em disciplinas.</string>
+    <string name="no_forums">Não há fóruns nas disciplinas cadastradas.</string>
+    <string name="no_new_posts">Não há novas postagens.</string>
 </resources>

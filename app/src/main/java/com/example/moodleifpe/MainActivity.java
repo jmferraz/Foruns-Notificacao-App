@@ -1,29 +1,23 @@
 package com.example.moodleifpe;
 
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.text.method.ScrollingMovementMethod;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.CookieHandler;
 import java.net.CookieManager;
 import java.net.CookiePolicy;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
-import retrofit.Callback;
 import retrofit.RestAdapter;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
@@ -39,6 +33,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String PASSWORD = "2Patos";
 
     private final IFPEService service;
+    private AsyncTask asyncTask;
 
     public MainActivity() {
         super();
@@ -56,94 +51,18 @@ public class MainActivity extends AppCompatActivity {
         textView.setMovementMethod(new ScrollingMovementMethod());
 
         enableCookies();
-        authenticateToEndpoint();
+        asyncTask = new GetPostsTask().execute(getLastCheckedDate());
     }
 
-    private void authenticateToEndpoint() {
-        service.auth(USERNAME, PASSWORD, new Callback<Response>() {
-            @Override
-            public void success(Response result, Response response) {
-                String resultString = convertToString(result);
-                browseIndexPage(resultString);
-            }
-
-            @Override
-            public void failure(RetrofitError retrofitError) {
-                textView.setText("Error: " + retrofitError.getKind());
-            }
-        });
-    }
-
-    private void browseIndexPage(String resultString) {
-        Document document = Jsoup.parse(resultString);
-        Elements elements = document.getElementsByClass("type_course");
-        List<Course> courses = new ArrayList<Course>();
-        for (Element courseElement : elements) {
-            Elements links = courseElement.getElementsByTag("a");
-            if (links.isEmpty()) {
-                continue;
-            }
-            String title = links.first().attr("title");
-            String link = links.first().attr("href");
-            String id = link.split("\\?id=")[1];
-
-            textView.append(title + " - " + id + "\n");
-
-            service.getCourse(id, new Callback<Response>() {
-                @Override
-                public void success(Response result, Response response) {
-                    browseCoursePage(result);
-                }
-
-                @Override
-                public void failure(RetrofitError error) {
-                    textView.append("Failure: " + error.getMessage() + "\n");
-                }
-            });
-
-            Course course = new Course();
-            course.setTitle(title);
-            course.setLink(link);
-            courses.add(course);
-
-        }
-    }
-
-    private void browseCoursePage(Response result) {
-        //TODO move to an appropriate place
-        progressBar.setVisibility(View.INVISIBLE);
-
-        String resultString = convertToString(result);
-        Document document = Jsoup.parse(resultString);
-        Elements elements = document.getElementsByClass("forum");
-        for (Element forum : elements) {
-            Element forumTitle = forum.getElementsByClass("instancename").first();
-            String link = forum.getElementsByTag("a").first().attr("href");
-            if (forumTitle != null) {
-                textView.append(forumTitle.ownText() + "\n");
-                textView.append(link + "\n\n");
-            }
-        }
-    }
-
-    private String convertToString(Response result) {
-        BufferedReader reader;
-        StringBuilder sb = new StringBuilder();
-        try {
-            reader = new BufferedReader(new InputStreamReader(result.getBody().in()));
-            String line;
-            try {
-                while ((line = reader.readLine()) != null) {
-                    sb.append(line);
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            reader.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return sb.toString();
+    /**
+     * Return last time server was checked for new messages.
+     *
+     * @return
+     */
+    private Calendar getLastCheckedDate() {
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(2015, Calendar.MAY, 28, 0, 0); //TODO make dynamic
+        return calendar;
     }
 
     private void enableCookies() {
@@ -172,5 +91,119 @@ public class MainActivity extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (asyncTask != null && asyncTask.getStatus().equals(AsyncTask.Status.RUNNING)) {
+            asyncTask.cancel(true);
+        }
+        super.onDestroy();
+    }
+
+    private List<Course> getCourses() {
+        List<Course> courses = new ArrayList<Course>();
+        try {
+            final Response response = service.auth(USERNAME, PASSWORD);
+            String indexPage = Utils.responseToString(response);
+            courses.addAll(HtmlExtractor.getCourses(indexPage));
+        } catch (RetrofitError e) {
+            Log.e("MainActivity", "Error retrieving index page: " + e.getMessage());
+        }
+        return courses;
+    }
+
+    private List<Forum> getForums(List<Course> courses) {
+        List<Forum> forums = new ArrayList<Forum>();
+        for (Course course : courses) {
+            String id = course.getLink().split("\\?id=")[1];
+            try {
+                Response response = service.getCourse(id);
+                String coursePage = Utils.responseToString(response);
+                forums.addAll(HtmlExtractor.getForums(course, coursePage));
+            } catch (RetrofitError e) {
+                Log.e("MainActivity", "Error retrieving course page: " + e.getMessage());
+            }
+        }
+        return forums;
+    }
+
+    private List<Post> getPosts(List<Forum> forums, Calendar date) {
+        List<Post> posts = new ArrayList<Post>();
+        for (Forum forum : forums) {
+            String id = forum.getLink().split("\\?id=")[1];
+            try {
+                Response response = service.getForum(id);
+                String forumPage = Utils.responseToString(response);
+                posts.addAll(HtmlExtractor.getForums(forum, forumPage, date));
+            } catch (RetrofitError e) {
+                Log.e("MainActivity", "Error retrieving forum page: " + e.getMessage());
+            }
+        }
+        return posts;
+    }
+
+    private class GetPostsTask extends AsyncTask<Calendar, Void, List<Post>> {
+
+        @Override
+        protected void onPreExecute() {
+            progressBar.setVisibility(View.VISIBLE);
+        }
+
+        @Override
+        protected List<Post> doInBackground(Calendar... params) {
+            //get courses
+            List<Course> courses = getCourses();
+            if (courses.isEmpty()) {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        textView.setText(R.string.no_courses);
+                    }
+                });
+                cancel(true);
+                return null;
+            }
+            //get forums
+            List<Forum> forums = getForums(courses);
+            if (forums.isEmpty()) {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        textView.setText(R.string.no_forums);
+                    }
+                });
+                cancel(true);
+                return null;
+            }
+            //get posts
+            Calendar date = params[0];
+            List<Post> posts = getPosts(forums, date);
+            if (posts.isEmpty()) {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        textView.setText(R.string.no_new_posts);
+                    }
+                });
+                cancel(true);
+                return null;
+            }
+
+            return posts;
+        }
+
+        @Override
+        protected void onPostExecute(List<Post> posts) {
+            progressBar.setVisibility(View.INVISIBLE);
+            for (Post post : posts) {
+                textView.append(post.getAuthorName() + " - " + post.getMessage() + "\n");
+            }
+        }
+
+        @Override
+        protected void onCancelled() {
+            progressBar.setVisibility(View.INVISIBLE);
+        }
     }
 }

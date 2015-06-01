@@ -15,10 +15,11 @@ public interface IFPEService {
 
     @FormUrlEncoded
     @POST("/login/index.php")
-    void auth(@Field("username") String username, @Field("password") String password,
-              Callback<Response>
-                      cb);
+    Response auth(@Field("username") String username, @Field("password") String password);
 
     @GET("/course/view.php")
-    void getCourse(@Query("id") String courseId, Callback<Response> cb);
+    Response getCourse(@Query("id") String courseId);
+
+    @GET("/mod/forum/view.php")
+    Response getForum(@Query("id") String forumId);
 }
