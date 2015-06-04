@@ -119,15 +119,13 @@ public class LocalDatabaseHandler extends SQLiteOpenHelper {
 
     public Date getDateOfLastCheck() {
         SQLiteDatabase db = this.getReadableDatabase();
-//        String selectQuery = "SELECT " + DATE_LAST_CHECK + " FROM " + TABLE_DATE;
-//        Cursor cursor = db.rawQuery(selectQuery, null);
         Cursor c = db.rawQuery("SELECT " + DATE_LAST_CHECK + " FROM "
                 + TABLE_DATE, null);
 
         Date date = null;
         try {
             if (c.moveToFirst()) {
-                Log.i("LocalDB", "----->getDateOfLastCheck()- cursor.getType(0): " + c.getType(c.getColumnIndex(DATE_LAST_CHECK)));
+//                Log.i("LocalDB", "----->getDateOfLastCheck()- cursor.getType(0): " + c.getType(c.getColumnIndex(DATE_LAST_CHECK)));
                 String dateString = c.getString(0);
                 date = parseStringToDate(dateString);
             }
@@ -136,7 +134,6 @@ public class LocalDatabaseHandler extends SQLiteOpenHelper {
         } catch (Exception e1) {
             Log.e("LocalDB", "error at getDateOfLastCheck: " + e1.getMessage());
         }
-        Log.i("LocalDB", "Date being returned is: " + parseDateToString(date));
         return date;
     }
 
@@ -148,7 +145,7 @@ public class LocalDatabaseHandler extends SQLiteOpenHelper {
         values.put(DATE_LAST_CHECK, parseDateToString(date));
 
         long insertedRow = db.insert(TABLE_DATE, null, values);
-        Log.i("LocalDB = insertDate", "replaceDateOfLastFetch - inserted rows: " + insertedRow);
+        Log.i("LocalDB", "replaceDateOfLastFetch - inserted rows: " + insertedRow);
         db.close();
     }
 

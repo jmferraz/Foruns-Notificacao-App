@@ -37,7 +37,6 @@ public class GetPostsService extends IntentService {
 
     private void fetchTask() {
         Log.i("com.example.moodleifpe", "GetPostsServices: fetchTask");
-
         LocalDatabaseHandler localDb = new LocalDatabaseHandler(getApplicationContext());
 //        Date dateOfLastCheck = localDb.getDateOfLastCheck();
 
@@ -54,13 +53,12 @@ public class GetPostsService extends IntentService {
         List<Post> posts = getPosts(forums, calendar);
 
         if (posts != null) {
-            Log.i("com.example.moodleifpe", "GetPostsServices - fetchTask() - posts is not null. Size: " + posts.size());
             for (Post post : posts) {
                 localDb.insertPost(post);
             }
+            //Sets current date on Local DB.
+            localDb.replaceDateOfLastFetch(Calendar.getInstance().getTime());
         }
-        //Sets current date on Local DB.
-        localDb.replaceDateOfLastFetch(Calendar.getInstance().getTime());
     }
 
     private List<Course> getCourses() {

@@ -154,7 +154,7 @@ public class MainActivity extends AppCompatActivity {
             if (posts.isEmpty()) {
                 textView.setText(R.string.no_new_posts);
             } else {
-                textView.setText(posts.size() + " " + R.string.new_posts +"\n");
+                textView.setText(posts.size() + " " + getText(R.string.new_posts) +"\n");
                 // Attach the adapter to a ListView
                 ListView listView = (ListView) findViewById(R.id.list_posts);
                 listView.setAdapter(new PostAdapter(getApplicationContext(), posts));
