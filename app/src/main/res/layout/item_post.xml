@@ -18,4 +18,14 @@
         android:layout_below="@id/post_author_name"
         android:textColor="#c63f3f3f" />
 
+    <TextView
+        android:id="@+id/post_forum_title"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:textSize="12sp"
+        android:layout_below="@id/post_message"
+        android:textColor="#c63f3f3f"
+        android:textStyle="bold|italic"
+        android:layout_alignRight="@id/post_author_name"/>
+
 </RelativeLayout>

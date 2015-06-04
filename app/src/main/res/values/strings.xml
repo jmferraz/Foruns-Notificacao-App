@@ -8,5 +8,6 @@
     <string name="no_new_posts">Não há novas postagens.</string>
     <string name="new_posts">novas postagens.</string>
     <string name="action_refresh">Atualizar</string>
+    <string name="posted_at_forum">Postado no fórum: </string>
 
 </resources>

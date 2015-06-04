@@ -37,6 +37,7 @@ public class LocalDatabaseHandler extends SQLiteOpenHelper {
     private final String POST_AUTHOR_NAME = "post_author_name";
     private final String POST_MESSAGE = "post_message";
     private final String POST_DATE = "post_date";
+    private final String POST_FORUM_TITLE = "post_forum_title";
 
     public final String TABLE_DATE = "table_date";
     public final String DATE_LAST_CHECK = "date_last_check";
@@ -61,7 +62,8 @@ public class LocalDatabaseHandler extends SQLiteOpenHelper {
                 + POST_FORUM_LINK + " VARCHAR"
                 + ",  " + POST_AUTHOR_NAME + " VARCHAR"
                 + ",  " + POST_MESSAGE + " VARCHAR"
-                + ",  " + POST_DATE + " TEXT)";
+                + ",  " + POST_DATE + " TEXT"
+                + ",  " + POST_FORUM_TITLE + " VARCHAR)";
 
         String CREATE_TABLE_DATE = "CREATE TABLE " + TABLE_DATE
                 + " (" + DATE_LAST_CHECK + " VARCHAR)";
@@ -111,6 +113,7 @@ public class LocalDatabaseHandler extends SQLiteOpenHelper {
         values.put(POST_AUTHOR_NAME, post.getAuthorName());
         values.put(POST_MESSAGE, post.getMessage());
         values.put(POST_DATE, parseDateToString(post.getDate()));
+        values.put(POST_FORUM_TITLE, post.getForumTitle());
 
         long insertedRow = db.insert(TABLE_POST, null, values);
         Log.i("com.example.moodleifpe", "LocalDB - insertPost - inserted rows: " + insertedRow);
@@ -201,14 +204,15 @@ public class LocalDatabaseHandler extends SQLiteOpenHelper {
                 + ", " + POST_AUTHOR_NAME
                 + ", " + POST_MESSAGE
                 + ", " + POST_DATE
+                + ", " + POST_FORUM_TITLE
                 + " FROM " + TABLE_POST, null);
         if (c.moveToFirst()) {
             do {
                 Post post = null;
                 try {
-                    post = new Post(c.getString(0), c.getString(1), c.getString(2), parseStringToDate(c.getString(3)));
+                    post = new Post(c.getString(0), c.getString(1), c.getString(2), parseStringToDate(c.getString(3)), c.getString(4));
                 } catch (ParseException e) {
-                    post = new Post(c.getString(0), c.getString(1), c.getString(2), null);
+                    post = new Post(c.getString(0), c.getString(1), c.getString(2), null, c.getString(4));
                 }
                 posts.add(post);
             } while (c.moveToNext());
@@ -235,9 +239,9 @@ public class LocalDatabaseHandler extends SQLiteOpenHelper {
             do {
                 Post post = null;
                 try {
-                    post = new Post(c.getString(0), c.getString(1), c.getString(2), parseStringToDate(c.getString(3)));
+                    post = new Post(c.getString(0), c.getString(1), c.getString(2), parseStringToDate(c.getString(3)), c.getString(4));
                 } catch (ParseException e) {
-                    post = new Post(c.getString(0), c.getString(1), c.getString(2), null);
+                    post = new Post(c.getString(0), c.getString(1), c.getString(2), null, c.getString(4));
                 }
                 posts.add(post);
             } while (c.moveToNext());

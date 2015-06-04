@@ -29,10 +29,13 @@ public class PostAdapter extends ArrayAdapter<Post> {
         // Lookup view for data population
         TextView authorName = (TextView) convertView.findViewById(R.id.post_author_name);
         TextView message = (TextView) convertView.findViewById(R.id.post_message);
+        TextView forumTitle = (TextView) convertView.findViewById(R.id.post_forum_title);
+
 
         // Populate the data into the template view using the data object
-        authorName.setText(post.getAuthorName());
+        authorName.setText(post.getAuthorName().trim());
         message.setText(post.getMessage().trim());
+        forumTitle.setText(post.getForumTitle().trim());
 
         // Return the completed view to render on screen
         return convertView;

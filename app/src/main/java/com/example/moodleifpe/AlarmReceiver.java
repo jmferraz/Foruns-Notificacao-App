@@ -26,8 +26,6 @@ public class AlarmReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         Log.i("com.example.moodleifpe", "----> onReceive AlarmReceiver");
-        Toast.makeText(context, "I'm running.", Toast.LENGTH_LONG).show();
-
         ComponentName comp = new ComponentName(context.getPackageName(),
                 GetPostsService.class.getName());
 

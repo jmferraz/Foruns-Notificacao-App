@@ -6,7 +6,6 @@ import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 
 import retrofit.RestAdapter;
@@ -80,7 +79,7 @@ public class GetPostsService extends IntentService {
             try {
                 Response response = service.getCourse(id);
                 String coursePage = Utils.responseToString(response);
-                forums.addAll(HtmlExtractor.getPosts(course, coursePage));
+                forums.addAll(HtmlExtractor.getForums(course, coursePage));
             } catch (RetrofitError e) {
                 Log.e("MainActivity", "Error retrieving course page: " + e.getMessage());
             }

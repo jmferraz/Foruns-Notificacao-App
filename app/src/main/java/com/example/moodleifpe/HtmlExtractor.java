@@ -33,7 +33,7 @@ public class HtmlExtractor {
         return courses;
     }
 
-    public static List<Forum> getPosts(Course course, String coursePage) {
+    public static List<Forum> getForums(Course course, String coursePage) {
         Document document = Jsoup.parse(coursePage);
         Elements elements = document.getElementsByClass("forum");
         List<Forum> forums = new ArrayList<Forum>();
@@ -70,7 +70,7 @@ public class HtmlExtractor {
                         message = messageElement.text();
                     }
 
-                    Post post = new Post(forum.getLink(), authorName, message, postDate.getTime());
+                    Post post = new Post(forum.getLink(), authorName, message, postDate.getTime(), forum.getTitle());
                     posts.add(post);
                 }
             }
