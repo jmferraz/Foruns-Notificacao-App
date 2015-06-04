@@ -38,6 +38,9 @@ public class LocalDatabaseHandler extends SQLiteOpenHelper {
     private final String POST_MESSAGE = "post_message";
     private final String POST_DATE = "post_date";
 
+    public final String TABLE_DATE = "table_date";
+    public final String DATE_LAST_CHECK = "date_last_check";
+
 
     public LocalDatabaseHandler(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -47,11 +50,11 @@ public class LocalDatabaseHandler extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase db) {
         String CREATE_TABLE_COURSE = "CREATE TABLE " + TABLE_COURSE + " ("
                 + COURSE_TITLE
-                + " VARCHAR" + ",  " + COURSE_LINK + " VARCHAR UNIQUE PRIMARY KEY)";
+                + " VARCHAR" + ",  " + COURSE_LINK + " VARCHAR)";
 
         String CREATE_TABLE_FORUM = "CREATE TABLE " + TABLE_FORUM
                 + " (" + FORUM_COURSE_LINK + " VARCHAR"
-                + ",  " + FORUM_LINK + " VARCHAR UNIQUE PRIMARY KEY"
+                + ",  " + FORUM_LINK + " VARCHAR"
                 + ",  " + FORUM_TITLE + " VARCHAR)";
 
         String CREATE_TABLE_POST = "CREATE TABLE " + TABLE_POST + " ("
@@ -60,9 +63,13 @@ public class LocalDatabaseHandler extends SQLiteOpenHelper {
                 + ",  " + POST_MESSAGE + " VARCHAR"
                 + ",  " + POST_DATE + " TEXT)";
 
+        String CREATE_TABLE_DATE = "CREATE TABLE " + TABLE_DATE
+                + " (" + DATE_LAST_CHECK + " VARCHAR)";
+
         db.execSQL(CREATE_TABLE_COURSE);
         db.execSQL(CREATE_TABLE_FORUM);
         db.execSQL(CREATE_TABLE_POST);
+        db.execSQL(CREATE_TABLE_DATE);
     }
 
     @Override
@@ -70,6 +77,7 @@ public class LocalDatabaseHandler extends SQLiteOpenHelper {
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_COURSE);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_FORUM);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_POST);
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_DATE);
         onCreate(db);
     }
 
@@ -105,46 +113,51 @@ public class LocalDatabaseHandler extends SQLiteOpenHelper {
         values.put(POST_DATE, parseDateToString(post.getDate()));
 
         long insertedRow = db.insert(TABLE_POST, null, values);
-        Log.i("LocalDB = insertPost", "inserted rows: " + insertedRow);
+        Log.i("com.example.moodleifpe", "LocalDB - insertPost - inserted rows: " + insertedRow);
         db.close();
     }
 
-    public void deleteCourse(String courseLink) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        db.delete(TABLE_COURSE, COURSE_LINK + "=" + courseLink, null);
-        db.close();
+    public Date getDateOfLastCheck() {
+        SQLiteDatabase db = this.getReadableDatabase();
+//        String selectQuery = "SELECT " + DATE_LAST_CHECK + " FROM " + TABLE_DATE;
+//        Cursor cursor = db.rawQuery(selectQuery, null);
+        Cursor c = db.rawQuery("SELECT " + DATE_LAST_CHECK + " FROM "
+                + TABLE_DATE, null);
+
+        Date date = null;
+        try {
+            if (c.moveToFirst()) {
+                Log.i("LocalDB", "----->getDateOfLastCheck()- cursor.getType(0): " + c.getType(c.getColumnIndex(DATE_LAST_CHECK)));
+                String dateString = c.getString(0);
+                date = parseStringToDate(dateString);
+            }
+        } catch (ParseException e) {
+            Log.e("LocalDB", "error at getDateOfLastCheck: " + e.getMessage());
+        } catch (Exception e1) {
+            Log.e("LocalDB", "error at getDateOfLastCheck: " + e1.getMessage());
+        }
+        Log.i("LocalDB", "Date being returned is: " + parseDateToString(date));
+        return date;
     }
 
-    public void deleteForum(String forumLink) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        db.delete(TABLE_FORUM, FORUM_LINK + "=" + forumLink, null);
-        db.close();
-    }
+    public void replaceDateOfLastFetch(Date date) {
+        deleteDateOfLastFetch();
 
-    public void updateCourse(Course course) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
-        values.put(COURSE_LINK, course.getLink());
-        values.put(COURSE_TITLE, course.getTitle());
+        values.put(DATE_LAST_CHECK, parseDateToString(date));
 
-        long updatedRow = db.update(TABLE_COURSE, values, COURSE_LINK + "="
-                + course.getLink(), null);
-        Log.i("LocalDB = updateCourse", "inserted rows: " + updatedRow);
+        long insertedRow = db.insert(TABLE_DATE, null, values);
+        Log.i("LocalDB = insertDate", "replaceDateOfLastFetch - inserted rows: " + insertedRow);
         db.close();
     }
 
-    public void updateForum(Forum forum) {
+    public void deleteDateOfLastFetch() {
         SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues values = new ContentValues();
-        values.put(FORUM_LINK, forum.getLink());
-        values.put(FORUM_TITLE, forum.getTitle());
-        values.put(FORUM_COURSE_LINK, forum.getCourseLink());
-
-        long updatedRow = db.update(TABLE_POST, values, FORUM_LINK + "="
-                + forum.getLink(), null);
-        Log.i("LocalDB = updateForum", "inserted rows: " + updatedRow);
+        db.execSQL("DELETE FROM " + TABLE_DATE);
         db.close();
     }
+
 
     public List<Course> listCourses() {
         List<Course> courses = new ArrayList<Course>();
@@ -183,7 +196,6 @@ public class LocalDatabaseHandler extends SQLiteOpenHelper {
 
     /**
      * Lists all posts stored in the Database.
-     *
      */
     public List<Post> listPost() {
         List<Post> posts = new ArrayList<Post>();
@@ -199,7 +211,6 @@ public class LocalDatabaseHandler extends SQLiteOpenHelper {
                 try {
                     post = new Post(c.getString(0), c.getString(1), c.getString(2), parseStringToDate(c.getString(3)));
                 } catch (ParseException e) {
-                    Log.e("LocalDB - listPost", e.getMessage());
                     post = new Post(c.getString(0), c.getString(1), c.getString(2), null);
                 }
                 posts.add(post);
@@ -222,14 +233,13 @@ public class LocalDatabaseHandler extends SQLiteOpenHelper {
                 + ", " + POST_MESSAGE
                 + ", " + POST_DATE
                 + " FROM " + TABLE_POST
-                + " WHERE " + POST_DATE + " >= " + parseDateToString(date), null);
+                + " WHERE " + POST_DATE + " >= " + date.getTime(), null);
         if (c.moveToFirst()) {
             do {
                 Post post = null;
                 try {
                     post = new Post(c.getString(0), c.getString(1), c.getString(2), parseStringToDate(c.getString(3)));
                 } catch (ParseException e) {
-                    Log.e("LocalDB - listPost", e.getMessage());
                     post = new Post(c.getString(0), c.getString(1), c.getString(2), null);
                 }
                 posts.add(post);
@@ -241,6 +251,9 @@ public class LocalDatabaseHandler extends SQLiteOpenHelper {
     }
 
     private String parseDateToString(Date date) {
+        if (date == null) {
+            return "";
+        }
         Format formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         return formatter.format(date);
     }

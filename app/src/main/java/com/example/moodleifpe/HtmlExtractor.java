@@ -33,7 +33,7 @@ public class HtmlExtractor {
         return courses;
     }
 
-    public static List<Forum> getForums(Course course, String coursePage) {
+    public static List<Forum> getPosts(Course course, String coursePage) {
         Document document = Jsoup.parse(coursePage);
         Elements elements = document.getElementsByClass("forum");
         List<Forum> forums = new ArrayList<Forum>();
@@ -48,7 +48,7 @@ public class HtmlExtractor {
         return forums;
     }
 
-    public static List<Post> getForums(Forum forum, String forumPage, Calendar date) {
+    public static List<Post> getPosts(Forum forum, String forumPage, Calendar date) {
         Document document = Jsoup.parse(forumPage);
         Elements elements = document.getElementsByClass("forumpost");
         List<Post> posts = new ArrayList<Post>();

@@ -1,5 +1,9 @@
 package com.example.moodleifpe;
 
+import android.app.AlarmManager;
+import android.app.PendingIntent;
+import android.content.Context;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -8,6 +12,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -16,17 +21,17 @@ import java.net.CookieManager;
 import java.net.CookiePolicy;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 import retrofit.RestAdapter;
-import retrofit.RetrofitError;
-import retrofit.client.Response;
 
 
 public class MainActivity extends AppCompatActivity {
 
     private TextView textView;
     private ProgressBar progressBar;
+    private ListView postsListView;
 
     private static final String ENDPOINT = "http://dead2.ifpe.edu.br/moodle";
     private static final String USERNAME = "estudantevisitante";
@@ -34,6 +39,9 @@ public class MainActivity extends AppCompatActivity {
 
     private final IFPEService service;
     private AsyncTask asyncTask;
+
+    private PendingIntent pendingIntent;
+    private AlarmManager alertManager;
 
     public MainActivity() {
         super();
@@ -44,25 +52,44 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.i("com.example.moodleifpe", "---------> onCreate");
         setContentView(R.layout.activity_main);
 
         progressBar = (ProgressBar) findViewById(R.id.progress_bar);
         textView = (TextView) findViewById(R.id.text);
         textView.setMovementMethod(new ScrollingMovementMethod());
+        postsListView = (ListView) findViewById(R.id.list_posts);
 
+        configureAlarmSettings();
         enableCookies();
-        asyncTask = new GetPostsTask().execute(getLastCheckedDate());
+        asyncTask = new GetPostsTask().execute();
     }
 
-    /**
-     * Return last time server was checked for new messages.
-     *
-     * @return
-     */
-    private Calendar getLastCheckedDate() {
-        Calendar calendar = Calendar.getInstance();
-        calendar.set(2015, Calendar.MAY, 28, 0, 0); //TODO make dynamic
-        return calendar;
+    private void configureAlarmSettings() {
+        // Retrieve a PendingIntent that will perform a broadcast
+        Intent alarmIntent = new Intent(this, AlarmReceiver.class);
+        pendingIntent = PendingIntent.getBroadcast(this, 0, alarmIntent, 0);
+        //Setting initial date
+        setInitialDate();
+        startAlarm();
+    }
+
+    private void setInitialDate() {
+        LocalDatabaseHandler localDb = new LocalDatabaseHandler(getApplicationContext());
+        Date date = localDb.getDateOfLastCheck();
+        if (date == null) {
+            Calendar calendar = Calendar.getInstance();
+            calendar.set(2015, Calendar.MAY, 28, 0, 0);
+            localDb.replaceDateOfLastFetch(calendar.getTime());
+        }
+    }
+
+    public void startAlarm() {
+        alertManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+        //TODO Pesquisando a cada 2 minutos. precisa mudar para 1000*60*60*8 (8h)
+        int interval = 1000 * 60 * 2;
+        alertManager.setRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), interval, pendingIntent);
+        Log.i("com.example.moodleifpe", "--->Alarm Set");
     }
 
     private void enableCookies() {
@@ -75,6 +102,7 @@ public class MainActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
+
         return true;
     }
 
@@ -88,8 +116,9 @@ public class MainActivity extends AppCompatActivity {
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             return true;
+        } else if(id == R.id.action_refresh){
+            asyncTask = new GetPostsTask().execute();
         }
-
         return super.onOptionsItemSelected(item);
     }
 
@@ -101,49 +130,8 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
     }
 
-    private List<Course> getCourses() {
-        List<Course> courses = new ArrayList<Course>();
-        try {
-            final Response response = service.auth(USERNAME, PASSWORD);
-            String indexPage = Utils.responseToString(response);
-            courses.addAll(HtmlExtractor.getCourses(indexPage));
-        } catch (RetrofitError e) {
-            Log.e("MainActivity", "Error retrieving index page: " + e.getMessage());
-        }
-        return courses;
-    }
-
-    private List<Forum> getForums(List<Course> courses) {
-        List<Forum> forums = new ArrayList<Forum>();
-        for (Course course : courses) {
-            String id = course.getLink().split("\\?id=")[1];
-            try {
-                Response response = service.getCourse(id);
-                String coursePage = Utils.responseToString(response);
-                forums.addAll(HtmlExtractor.getForums(course, coursePage));
-            } catch (RetrofitError e) {
-                Log.e("MainActivity", "Error retrieving course page: " + e.getMessage());
-            }
-        }
-        return forums;
-    }
-
-    private List<Post> getPosts(List<Forum> forums, Calendar date) {
-        List<Post> posts = new ArrayList<Post>();
-        for (Forum forum : forums) {
-            String id = forum.getLink().split("\\?id=")[1];
-            try {
-                Response response = service.getForum(id);
-                String forumPage = Utils.responseToString(response);
-                posts.addAll(HtmlExtractor.getForums(forum, forumPage, date));
-            } catch (RetrofitError e) {
-                Log.e("MainActivity", "Error retrieving forum page: " + e.getMessage());
-            }
-        }
-        return posts;
-    }
-
-    private class GetPostsTask extends AsyncTask<Calendar, Void, List<Post>> {
+    private class GetPostsTask extends AsyncTask<Void, Void, List<Post>> {
+        private LocalDatabaseHandler localDb;
 
         @Override
         protected void onPreExecute() {
@@ -151,53 +139,25 @@ public class MainActivity extends AppCompatActivity {
         }
 
         @Override
-        protected List<Post> doInBackground(Calendar... params) {
-            //get courses
-            List<Course> courses = getCourses();
-            if (courses.isEmpty()) {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        textView.setText(R.string.no_courses);
-                    }
-                });
-                cancel(true);
-                return null;
-            }
-            //get forums
-            List<Forum> forums = getForums(courses);
-            if (forums.isEmpty()) {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        textView.setText(R.string.no_forums);
-                    }
-                });
-                cancel(true);
-                return null;
-            }
-            //get posts
-            Calendar date = params[0];
-            List<Post> posts = getPosts(forums, date);
-            if (posts.isEmpty()) {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        textView.setText(R.string.no_new_posts);
-                    }
-                });
-                cancel(true);
-                return null;
-            }
+        protected List<Post> doInBackground(Void... params) {
+            localDb = new LocalDatabaseHandler(getApplicationContext());
 
+            List<Post> posts = localDb.listPost();
+            //Should use listPost(date). But it is not working.
+//            List<Post> posts = localDb.listPost(getLastCheckedDate().getTime());
             return posts;
         }
 
         @Override
         protected void onPostExecute(List<Post> posts) {
             progressBar.setVisibility(View.INVISIBLE);
-            for (Post post : posts) {
-                textView.append(post.getAuthorName() + " - " + post.getMessage() + "\n");
+            if (posts.isEmpty()) {
+                textView.setText(R.string.no_new_posts);
+            } else {
+                textView.setText(posts.size() + " " + R.string.new_posts +"\n");
+                // Attach the adapter to a ListView
+                ListView listView = (ListView) findViewById(R.id.list_posts);
+                listView.setAdapter(new PostAdapter(getApplicationContext(), posts));
             }
         }
 

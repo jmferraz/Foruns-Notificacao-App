@@ -6,4 +6,7 @@
     <string name="no_courses">Usuário não está matriculado em disciplinas.</string>
     <string name="no_forums">Não há fóruns nas disciplinas cadastradas.</string>
     <string name="no_new_posts">Não há novas postagens.</string>
+    <string name="new_posts">novas postagens.</string>
+    <string name="action_refresh">Atualizar</string>
+
 </resources>
