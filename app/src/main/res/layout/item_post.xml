@@ -4,11 +4,30 @@
     android:layout_height="match_parent">
 
     <TextView
+        android:id="@+id/post_course_title"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:textSize="14sp"
+        android:textColor="#ff060403"
+        android:textStyle="bold"/>
+
+    <TextView
+        android:id="@+id/post_forum_title"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:textSize="12sp"
+        android:layout_below="@id/post_course_title"
+        android:textColor="#ff060403"
+        />
+
+    <TextView
         android:id="@+id/post_author_name"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:textSize="16sp"
-        android:textColor="#ff060403" />
+        android:textSize="12sp"
+        android:textColor="#ff060403"
+        android:layout_below="@id/post_forum_title"
+         />
 
     <TextView
         android:id="@+id/post_message"
@@ -19,13 +38,12 @@
         android:textColor="#c63f3f3f" />
 
     <TextView
-        android:id="@+id/post_forum_title"
+        android:id="@+id/post_date"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:textSize="12sp"
+        android:textSize="10sp"
         android:layout_below="@id/post_message"
-        android:textColor="#c63f3f3f"
-        android:textStyle="bold|italic"
-        android:layout_alignRight="@id/post_author_name"/>
+        android:textColor="#ff060403"
+        android:textStyle="italic"/>
 
 </RelativeLayout>

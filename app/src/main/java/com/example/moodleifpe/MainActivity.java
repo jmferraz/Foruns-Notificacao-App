@@ -79,7 +79,7 @@ public class MainActivity extends AppCompatActivity {
         Date date = localDb.getDateOfLastCheck();
         if (date == null) {
             Calendar calendar = Calendar.getInstance();
-            calendar.set(2015, Calendar.MAY, 28, 0, 0);
+            calendar.set(2015, Calendar.JUNE, 01, 0, 0);
             localDb.replaceDateOfLastFetch(calendar.getTime());
         }
     }
@@ -154,6 +154,7 @@ public class MainActivity extends AppCompatActivity {
             if (posts.isEmpty()) {
                 textView.setText(R.string.no_new_posts);
             } else {
+                //TODO ORDERNAR LISTA DE POSTS POR CURSO DEPOIS POR FÓRUM DEPOIS POR DATA DENTRO DO FORUM (DECRESCENTE)
                 textView.setText(posts.size() + " " + getText(R.string.new_posts) +"\n");
                 // Attach the adapter to a ListView
                 ListView listView = (ListView) findViewById(R.id.list_posts);

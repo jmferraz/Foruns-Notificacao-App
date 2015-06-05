@@ -41,7 +41,7 @@ public class HtmlExtractor {
             Element forumTitle = forumElement.getElementsByClass("instancename").first();
             String link = forumElement.getElementsByTag("a").first().attr("href");
             if (forumTitle != null) {
-                Forum forum = new Forum(course.getLink(), forumTitle.ownText(), link);
+                Forum forum = new Forum(course.getTitle(), forumTitle.ownText(), link);
                 forums.add(forum);
             }
         }
@@ -70,7 +70,7 @@ public class HtmlExtractor {
                         message = messageElement.text();
                     }
 
-                    Post post = new Post(forum.getLink(), authorName, message, postDate.getTime(), forum.getTitle());
+                    Post post = new Post(forum.getCourseTitle(), authorName, message, postDate.getTime(), forum.getTitle());
                     posts.add(post);
                 }
             }

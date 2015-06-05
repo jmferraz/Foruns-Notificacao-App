@@ -4,18 +4,18 @@ package com.example.moodleifpe;
  * Created by Vanessa Gomes on 5/28/15.
  */
 public class Forum {
-    private String courseLink;
+    private String courseTitle;
     private String title;
     private String link;
 
-    public Forum(String courseLink, String title, String forumLink){
-        this.courseLink = courseLink;
+    public Forum(String courseTitle, String title, String forumLink){
+        this.courseTitle = courseTitle;
         this.title = title;
         this.link = forumLink;
     }
 
-    public String getCourseLink() {
-        return courseLink;
+    public String getCourseTitle() {
+        return courseTitle;
     }
 
     public String getTitle() {

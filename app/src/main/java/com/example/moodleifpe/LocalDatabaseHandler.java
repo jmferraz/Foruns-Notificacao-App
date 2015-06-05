@@ -28,12 +28,12 @@ public class LocalDatabaseHandler extends SQLiteOpenHelper {
     private final String COURSE_LINK = "course_link";
 
     public final String TABLE_FORUM = "table_forum";
-    private final String FORUM_COURSE_LINK = "forum_course_link";
+    private final String FORUM_COURSE_NAME = "forum_course_name";
     private final String FORUM_LINK = "forum_link";
     private final String FORUM_TITLE = "forum_title";
 
     public final String TABLE_POST = "table_post";
-    private final String POST_FORUM_LINK = "post_forum_link";
+    private final String POST_COURSE_TITLE = "post_course_title";
     private final String POST_AUTHOR_NAME = "post_author_name";
     private final String POST_MESSAGE = "post_message";
     private final String POST_DATE = "post_date";
@@ -54,12 +54,12 @@ public class LocalDatabaseHandler extends SQLiteOpenHelper {
                 + " VARCHAR" + ",  " + COURSE_LINK + " VARCHAR)";
 
         String CREATE_TABLE_FORUM = "CREATE TABLE " + TABLE_FORUM
-                + " (" + FORUM_COURSE_LINK + " VARCHAR"
+                + " (" + FORUM_COURSE_NAME + " VARCHAR"
                 + ",  " + FORUM_LINK + " VARCHAR"
                 + ",  " + FORUM_TITLE + " VARCHAR)";
 
         String CREATE_TABLE_POST = "CREATE TABLE " + TABLE_POST + " ("
-                + POST_FORUM_LINK + " VARCHAR"
+                + POST_COURSE_TITLE + " VARCHAR"
                 + ",  " + POST_AUTHOR_NAME + " VARCHAR"
                 + ",  " + POST_MESSAGE + " VARCHAR"
                 + ",  " + POST_DATE + " TEXT"
@@ -97,7 +97,7 @@ public class LocalDatabaseHandler extends SQLiteOpenHelper {
     public void insertForum(Forum forum) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
-        values.put(FORUM_COURSE_LINK, forum.getCourseLink());
+        values.put(FORUM_COURSE_NAME, forum.getCourseTitle());
         values.put(FORUM_LINK, forum.getLink());
         values.put(FORUM_TITLE, forum.getTitle());
 
@@ -109,7 +109,7 @@ public class LocalDatabaseHandler extends SQLiteOpenHelper {
     public void insertPost(Post post) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
-        values.put(POST_FORUM_LINK, post.getForumLink());
+        values.put(POST_COURSE_TITLE, post.getCourseTitle());
         values.put(POST_AUTHOR_NAME, post.getAuthorName());
         values.put(POST_MESSAGE, post.getMessage());
         values.put(POST_DATE, parseDateToString(post.getDate()));
@@ -180,7 +180,7 @@ public class LocalDatabaseHandler extends SQLiteOpenHelper {
     public List<Forum> listForum() {
         List<Forum> forums = new ArrayList<Forum>();
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor c = db.rawQuery("SELECT  " + FORUM_COURSE_LINK + ", "
+        Cursor c = db.rawQuery("SELECT  " + FORUM_COURSE_NAME + ", "
                 + FORUM_TITLE + ", "
                 + FORUM_LINK + " FROM " + TABLE_FORUM, null);
         if (c.moveToFirst()) {
@@ -200,7 +200,7 @@ public class LocalDatabaseHandler extends SQLiteOpenHelper {
     public List<Post> listPost() {
         List<Post> posts = new ArrayList<Post>();
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor c = db.rawQuery("SELECT  " + POST_FORUM_LINK
+        Cursor c = db.rawQuery("SELECT  " + POST_COURSE_TITLE
                 + ", " + POST_AUTHOR_NAME
                 + ", " + POST_MESSAGE
                 + ", " + POST_DATE
@@ -229,7 +229,7 @@ public class LocalDatabaseHandler extends SQLiteOpenHelper {
     public List<Post> listPost(Date date) {
         List<Post> posts = new ArrayList<Post>();
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor c = db.rawQuery("SELECT  " + POST_FORUM_LINK
+        Cursor c = db.rawQuery("SELECT  " + POST_COURSE_TITLE
                 + ", " + POST_AUTHOR_NAME
                 + ", " + POST_MESSAGE
                 + ", " + POST_DATE
