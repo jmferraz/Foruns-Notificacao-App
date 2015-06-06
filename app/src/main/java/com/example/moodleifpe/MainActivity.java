@@ -16,9 +16,6 @@ import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import java.net.CookieHandler;
-import java.net.CookieManager;
-import java.net.CookiePolicy;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
@@ -55,7 +52,7 @@ public class MainActivity extends AppCompatActivity {
         textView.setMovementMethod(new ScrollingMovementMethod());
 
         configureAlarmSettings();
-        enableCookies();
+        Utils.enableCookies();
         asyncTask = new GetPostsTask().execute();
     }
 
@@ -84,12 +81,6 @@ public class MainActivity extends AppCompatActivity {
         int interval = 1000 * 60 * 2;
         alertManager.setRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), interval, pendingIntent);
         Log.i("com.example.moodleifpe", "--->Alarm Set");
-    }
-
-    private void enableCookies() {
-        CookieManager cookieManager = new CookieManager();
-        cookieManager.setCookiePolicy(CookiePolicy.ACCEPT_ALL);
-        CookieHandler.setDefault(cookieManager);
     }
 
     @Override

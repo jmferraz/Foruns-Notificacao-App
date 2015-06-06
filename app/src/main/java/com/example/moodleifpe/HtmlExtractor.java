@@ -77,4 +77,13 @@ public class HtmlExtractor {
         }
         return posts;
     }
+
+    public static boolean isAuth(String indexPage) {
+        Document document = Jsoup.parse(indexPage);
+        Elements elements = document.getElementsByClass("welcome_area");
+        if (elements.isEmpty()) {
+            return false;
+        }
+        return true;
+    }
 }

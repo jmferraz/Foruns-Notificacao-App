@@ -2,21 +2,16 @@ package com.example.moodleifpe;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.os.NetworkOnMainThreadException;
-import android.support.v7.app.ActionBarActivity;
+import android.os.AsyncTask;
 import android.os.Bundle;
-import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
-import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import java.io.IOException;
 
 import retrofit.RestAdapter;
 import retrofit.client.Response;
@@ -27,6 +22,7 @@ public class LoginActivity extends Activity {
     private TextView usernameEditText;
     private TextView passwordEditText;
     private Button loginButton;
+    private ProgressBar progressBar;
 
     public static final String ENDPOINT = "http://dead2.ifpe.edu.br/moodle";
 
@@ -49,9 +45,11 @@ public class LoginActivity extends Activity {
         localDb = new LocalDatabaseHandler(this);
         if (localDb.getUsername() == null) {
             usernameEditText = (TextView) findViewById(R.id.editTextUsername);
-            passwordEditText = (TextView) findViewById(R.id.editTextUsername);
+            passwordEditText = (TextView) findViewById(R.id.editTextPassword);
             loginButton = (Button) findViewById(R.id.login_button);
+            progressBar = (ProgressBar) findViewById(R.id.progress_bar);
             setOnLoginButtonClickListener();
+            Utils.enableCookies();
         } else {
             launchMainActivity();
         }
@@ -72,28 +70,13 @@ public class LoginActivity extends Activity {
                 if (username.isEmpty() || password.isEmpty()) {
                     toastLoginFail();
                 } else {
-                    try {
-                        authenticateUser();
-                    } catch (IOException e) {
-                        toastLoginFail();
-                    } catch (Exception e2){
-                        toastLoginFail();
-
-                    }
+                    new AuthUserTask().execute();
                 }
             }
         });
     }
 
-    private void authenticateUser() throws IOException {
-        Response response = service.auth(username, password);
-        response.getBody().in();
-        localDb.insertUser(username, password);
-        launchMainActivity();
-    }
-
     private void toastLoginFail() {
-        //TODO SUBSTITUIR POR STRING NO ARQUIVO STRINGS.XML
         Toast.makeText(getApplicationContext(), getText(R.string.login_fail), Toast.LENGTH_LONG).show();
     }
 
@@ -116,5 +99,42 @@ public class LoginActivity extends Activity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    private class AuthUserTask extends AsyncTask<Void, Void, Void> {
+
+        @Override
+        protected void onPreExecute() {
+            progressBar.setVisibility(View.VISIBLE);
+        }
+
+        @Override
+        protected Void doInBackground(Void... params) {
+            try {
+                Response response = service.auth(username, password);
+                String indexPage = Utils.responseToString(response);
+                if (HtmlExtractor.isAuth(indexPage)) {
+                    localDb.insertUser(username, password);
+                } else {
+                    cancel(true);
+                }
+            } catch (Exception e) {
+                cancel(true);
+                Log.e(getClass().getSimpleName(), e.getMessage());
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            progressBar.setVisibility(View.INVISIBLE);
+            launchMainActivity();
+        }
+
+        @Override
+        protected void onCancelled() {
+            progressBar.setVisibility(View.INVISIBLE);
+            toastLoginFail();
+        }
     }
 }

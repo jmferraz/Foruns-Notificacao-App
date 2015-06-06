@@ -1,63 +1,76 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
-    android:layout_height="match_parent" android:paddingLeft="@dimen/activity_horizontal_margin"
+<RelativeLayout
+    android:id="@+id/linearLayout"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#8a75caff"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    android:paddingBottom="@dimen/activity_vertical_margin"
-    tools:context="com.example.moodleifpe.LoginActivity"
-    android:orientation="vertical"
     android:weightSum="1"
-    android:id="@+id/linearLayout"
-    android:background="#8a75caff">
+    tools:context="com.example.moodleifpe.LoginActivity">
+
+    <ProgressBar
+        android:id="@+id/progress_bar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:visibility="invisible"/>
 
     <FrameLayout
+        android:id="@+id/frameLayout"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/frameLayout">
+        android:layout_height="wrap_content">
 
         <ImageView
-            android:layout_width="332dp"
-            android:layout_height="342dp"
             android:id="@+id/imageView"
-            android:src="@drawable/icone"
-            android:layout_gravity="center" />
+            android:layout_width="250dp"
+            android:layout_height="250dp"
+            android:layout_gravity="center"
+            android:contentDescription="@string/icone"
+            android:src="@drawable/icone"/>
 
     </FrameLayout>
 
     <TextView
+        android:id="@+id/textViewLogin"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="@string/app_name"
-        android:id="@+id/textViewLogin"
-        android:textStyle="bold"
+        android:layout_below="@id/frameLayout"
+        android:layout_centerHorizontal="true"
         android:focusableInTouchMode="false"
-        android:layout_gravity="center_horizontal"
-        android:layout_weight="0.28" />
+        android:text="@string/app_name"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:textStyle="bold"/>
 
     <EditText
+        android:id="@+id/editTextUsername"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:inputType="textEmailAddress"
+        android:layout_below="@id/textViewLogin"
         android:ems="10"
         android:hint="@string/hint_username"
-        android:id="@+id/editTextUsername" />
+        android:inputType="textEmailAddress"/>
 
     <EditText
+        android:id="@+id/editTextPassword"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:inputType="textPassword"
+        android:layout_below="@id/editTextUsername"
+        android:layout_gravity="center_horizontal"
         android:ems="10"
-        android:id="@+id/editTextPassword"
         android:hint="@string/hint_password"
-        android:layout_gravity="center_horizontal" />
+        android:inputType="textPassword"/>
 
     <Button
+        android:id="@+id/login_button"
         android:layout_width="108dp"
         android:layout_height="wrap_content"
-        android:text="@string/login_button"
-        android:id="@+id/login_button"
-        android:layout_gravity="center_horizontal"
-        android:background="#ff64b9ff" />
+        android:layout_below="@id/editTextPassword"
+        android:layout_centerHorizontal="true"
+        android:background="#ff64b9ff"
+        android:text="@string/login_button"/>
 
-</LinearLayout>
+</RelativeLayout>
