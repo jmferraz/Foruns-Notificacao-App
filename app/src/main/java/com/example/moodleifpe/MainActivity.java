@@ -32,15 +32,6 @@ public class MainActivity extends AppCompatActivity {
     private PendingIntent pendingIntent;
     private AlarmManager alertManager;
 
-    public MainActivity() {
-        super();
-    }
-
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-    }
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -56,6 +47,11 @@ public class MainActivity extends AppCompatActivity {
         asyncTask = new GetPostsTask().execute();
     }
 
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+    }
+
     private void configureAlarmSettings() {
         // Retrieve a PendingIntent that will perform a broadcast
         Intent alarmIntent = new Intent(this, AlarmReceiver.class);
@@ -65,12 +61,17 @@ public class MainActivity extends AppCompatActivity {
         startAlarm();
     }
 
+    /**
+     * By default, initial date is current date at time 00:00:00.
+     */
     private void setInitialDate() {
         LocalDatabaseHandler localDb = new LocalDatabaseHandler(getApplicationContext());
         Date date = localDb.getDateOfLastCheck();
         if (date == null) {
             Calendar calendar = Calendar.getInstance();
-            calendar.set(2015, Calendar.JUNE, 01, 0, 0);
+            calendar.set(Calendar.HOUR_OF_DAY, 0);
+            calendar.set(Calendar.MINUTE, 0);
+            calendar.set(Calendar.SECOND, 0);
             localDb.replaceDateOfLastFetch(calendar.getTime());
         }
     }
