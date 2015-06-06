@@ -42,6 +42,9 @@ public class LocalDatabaseHandler extends SQLiteOpenHelper {
     public final String TABLE_DATE = "table_date";
     public final String DATE_LAST_CHECK = "date_last_check";
 
+    public final String TABLE_USER = "table_user";
+    public final String USER_USERNAME = "user_username";
+    public final String USER_PASSWORD = "user_password";
 
     public LocalDatabaseHandler(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -68,10 +71,15 @@ public class LocalDatabaseHandler extends SQLiteOpenHelper {
         String CREATE_TABLE_DATE = "CREATE TABLE " + TABLE_DATE
                 + " (" + DATE_LAST_CHECK + " VARCHAR)";
 
+        String CREATE_TABLE_USER = "CREATE TABLE " + TABLE_USER + " ("
+                + USER_USERNAME
+                + " VARCHAR" + ",  " + USER_PASSWORD + " VARCHAR)";
+
         db.execSQL(CREATE_TABLE_COURSE);
         db.execSQL(CREATE_TABLE_FORUM);
         db.execSQL(CREATE_TABLE_POST);
         db.execSQL(CREATE_TABLE_DATE);
+        db.execSQL(CREATE_TABLE_USER);
     }
 
     @Override
@@ -80,7 +88,36 @@ public class LocalDatabaseHandler extends SQLiteOpenHelper {
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_FORUM);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_POST);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_DATE);
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_USER);
         onCreate(db);
+    }
+
+    public String getUsername() {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor c = db.rawQuery("SELECT " + USER_USERNAME + " FROM "
+                + TABLE_USER, null);
+
+        String username = null;
+
+        if (c.moveToFirst()) {
+            username = c.getString(0);
+
+        }
+        return username;
+    }
+
+    public String getPassword() {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor c = db.rawQuery("SELECT " + USER_PASSWORD + " FROM "
+                + TABLE_USER, null);
+
+        String password = null;
+
+        if (c.moveToFirst()) {
+            password = c.getString(0);
+
+        }
+        return password;
     }
 
     public void insertCourse(Course course) {
@@ -91,6 +128,17 @@ public class LocalDatabaseHandler extends SQLiteOpenHelper {
 
         long insertedRow = db.insert(TABLE_COURSE, null, values);
         Log.i("LocalDB = insertCourse", "inserted rows: " + insertedRow);
+        db.close();
+    }
+
+    public void insertUser(String username, String password) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(USER_USERNAME, username);
+        values.put(USER_PASSWORD, password);
+
+        long insertedRow = db.insert(TABLE_USER, null, values);
+        Log.i("LocalDB = insertUser", "inserted rows: " + insertedRow);
         db.close();
     }
 

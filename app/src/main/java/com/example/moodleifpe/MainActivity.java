@@ -19,25 +19,17 @@ import android.widget.TextView;
 import java.net.CookieHandler;
 import java.net.CookieManager;
 import java.net.CookiePolicy;
-import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
-
-import retrofit.RestAdapter;
-
 
 public class MainActivity extends AppCompatActivity {
 
     private TextView textView;
     private ProgressBar progressBar;
-    private ListView postsListView;
 
-    private static final String ENDPOINT = "http://dead2.ifpe.edu.br/moodle";
-    private static final String USERNAME = "estudantevisitante";
-    private static final String PASSWORD = "2Patos";
-
-    private final IFPEService service;
     private AsyncTask asyncTask;
 
     private PendingIntent pendingIntent;
@@ -45,8 +37,11 @@ public class MainActivity extends AppCompatActivity {
 
     public MainActivity() {
         super();
-        RestAdapter restAdapter = new RestAdapter.Builder().setEndpoint(ENDPOINT).build();
-        service = restAdapter.create(IFPEService.class);
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
     }
 
     @Override
@@ -58,7 +53,6 @@ public class MainActivity extends AppCompatActivity {
         progressBar = (ProgressBar) findViewById(R.id.progress_bar);
         textView = (TextView) findViewById(R.id.text);
         textView.setMovementMethod(new ScrollingMovementMethod());
-        postsListView = (ListView) findViewById(R.id.list_posts);
 
         configureAlarmSettings();
         enableCookies();
@@ -116,7 +110,7 @@ public class MainActivity extends AppCompatActivity {
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             return true;
-        } else if(id == R.id.action_refresh){
+        } else if (id == R.id.action_refresh) {
             asyncTask = new GetPostsTask().execute();
         }
         return super.onOptionsItemSelected(item);
@@ -143,7 +137,6 @@ public class MainActivity extends AppCompatActivity {
             localDb = new LocalDatabaseHandler(getApplicationContext());
 
             List<Post> posts = localDb.listPost();
-            //Should use listPost(date). But it is not working.
 //            List<Post> posts = localDb.listPost(getLastCheckedDate().getTime());
             return posts;
         }
@@ -154,12 +147,34 @@ public class MainActivity extends AppCompatActivity {
             if (posts.isEmpty()) {
                 textView.setText(R.string.no_new_posts);
             } else {
-                //TODO ORDERNAR LISTA DE POSTS POR CURSO DEPOIS POR FÓRUM DEPOIS POR DATA DENTRO DO FORUM (DECRESCENTE)
-                textView.setText(posts.size() + " " + getText(R.string.new_posts) +"\n");
+                posts = sortPosts(posts);
+                textView.setText(posts.size() + " " + getText(R.string.new_posts) + "\n");
                 // Attach the adapter to a ListView
                 ListView listView = (ListView) findViewById(R.id.list_posts);
                 listView.setAdapter(new PostAdapter(getApplicationContext(), posts));
             }
+        }
+
+
+        private List<Post> sortPosts(List<Post> list) {
+            Collections.sort(list, new Comparator<Post>() {
+                public int compare(Post post1, Post post2) {
+                    int compareCourseName = post1.getCourseTitle().compareTo(post2.getCourseTitle());
+                    return compareCourseName == 0 ? compareByForumName(post1, post2)
+                            : post1.getCourseTitle().compareToIgnoreCase(post2.getCourseTitle());
+                }
+
+                // If prices are equal, sorts by 'rating' property (desc).
+                public int compareByForumName(Post post1, Post post2) {
+                    // Sorts by 'Rating'. desc
+                    int compareForumName = post1.getForumTitle().compareTo(post2.getForumTitle());
+                    return compareForumName == 0 ? post1.getDate().compareTo(post2.getDate())
+                            : post1.getForumTitle().compareToIgnoreCase(post2.getForumTitle());
+                }
+
+
+            });
+            return list;
         }
 
         @Override

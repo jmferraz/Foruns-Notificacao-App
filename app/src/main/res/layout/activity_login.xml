@@ -1,0 +1,63 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
+    android:layout_height="match_parent" android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    tools:context="com.example.moodleifpe.LoginActivity"
+    android:orientation="vertical"
+    android:weightSum="1"
+    android:id="@+id/linearLayout"
+    android:background="#8a75caff">
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/frameLayout">
+
+        <ImageView
+            android:layout_width="332dp"
+            android:layout_height="342dp"
+            android:id="@+id/imageView"
+            android:src="@drawable/icone"
+            android:layout_gravity="center" />
+
+    </FrameLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="@string/app_name"
+        android:id="@+id/textViewLogin"
+        android:textStyle="bold"
+        android:focusableInTouchMode="false"
+        android:layout_gravity="center_horizontal"
+        android:layout_weight="0.28" />
+
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:inputType="textEmailAddress"
+        android:ems="10"
+        android:hint="@string/hint_username"
+        android:id="@+id/editTextUsername" />
+
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:inputType="textPassword"
+        android:ems="10"
+        android:id="@+id/editTextPassword"
+        android:hint="@string/hint_password"
+        android:layout_gravity="center_horizontal" />
+
+    <Button
+        android:layout_width="108dp"
+        android:layout_height="wrap_content"
+        android:text="@string/login_button"
+        android:id="@+id/login_button"
+        android:layout_gravity="center_horizontal"
+        android:background="#ff64b9ff" />
+
+</LinearLayout>

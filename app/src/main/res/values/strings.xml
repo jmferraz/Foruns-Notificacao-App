@@ -1,7 +1,6 @@
 <resources>
-    <string name="app_name">Fórums IFPE</string>
+    <string name="app_name">Fóruns IFPE</string>
 
-    <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
     <string name="no_courses">Usuário não está matriculado em disciplinas.</string>
     <string name="no_forums">Não há fóruns nas disciplinas cadastradas.</string>
@@ -9,5 +8,16 @@
     <string name="new_posts">novas postagens.</string>
     <string name="action_refresh">Atualizar</string>
     <string name="posted_at_forum">Postado no fórum: </string>
+    <string name="login_button">Acessar</string>
+    <string name="hint_username">Nome de usuário</string>
+    <string name="hint_password">Senha</string>
+    <string name="login_fail">Usuário ou Senha incorretos. Por favor tente novamente.</string>
 
+
+    <!--<string name="new_posts_notifications">Você tem postagens não lidas!</string>-->
+    <plurals name="new_post_notifications">
+        <item quantity="one">Você tem %d postagem não lida.</item>
+        <item quantity="other">Você tem %d postagens não lidas.</item>
+    </plurals>
+    <string name="title_activity_login">Log In</string>
 </resources>
