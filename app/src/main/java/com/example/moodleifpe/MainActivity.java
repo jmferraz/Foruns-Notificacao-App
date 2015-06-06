@@ -100,12 +100,14 @@ public class MainActivity extends AppCompatActivity {
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
+        if (id == R.id.action_logout) {
+            asyncTask = new LogoutTask().execute();
             return true;
         } else if (id == R.id.action_refresh) {
             asyncTask = new GetPostsTask().execute();
+            return true;
         }
-        return super.onOptionsItemSelected(item);
+        return false;
     }
 
     @Override
@@ -167,6 +169,34 @@ public class MainActivity extends AppCompatActivity {
 
             });
             return list;
+        }
+
+        @Override
+        protected void onCancelled() {
+            progressBar.setVisibility(View.INVISIBLE);
+        }
+    }
+
+    private class LogoutTask extends AsyncTask<Void, Void, Void> {
+
+        @Override
+        protected void onPreExecute() {
+            progressBar.setVisibility(View.VISIBLE);
+        }
+
+        @Override
+        protected Void doInBackground(Void... params) {
+            LocalDatabaseHandler localDb = new LocalDatabaseHandler(getApplicationContext());
+            localDb.deleteUser();
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            progressBar.setVisibility(View.INVISIBLE);
+            Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+            startActivity(intent);
+            finish();
         }
 
         @Override

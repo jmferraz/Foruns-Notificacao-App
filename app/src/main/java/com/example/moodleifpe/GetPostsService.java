@@ -12,8 +12,6 @@ import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
 
@@ -30,6 +28,7 @@ public class GetPostsService extends IntentService {
     private static final String PASSWORD = "2Patos";
 
     private IFPEService service;
+    private LocalDatabaseHandler localDb;
 
     public GetPostsService() {
         super("GetPostsService");
@@ -38,6 +37,10 @@ public class GetPostsService extends IntentService {
     @Override
     protected void onHandleIntent(Intent intent) {
         Log.i("com.example.moodleifpe", "GetPostsServices: onHandleIntent");
+        localDb = new LocalDatabaseHandler(getApplicationContext());
+        if (localDb.getUsername() == null) {
+            return;
+        }
         RestAdapter restAdapter = new RestAdapter.Builder().setEndpoint(ENDPOINT).build();
         service = restAdapter.create(IFPEService.class);
         Integer amountOfPosts = fetchTask();
@@ -49,7 +52,7 @@ public class GetPostsService extends IntentService {
     }
 
     private void sendNotification(Integer amountOfPosts) {
-        String message =  getResources().getQuantityString(R.plurals.new_post_notifications, amountOfPosts, amountOfPosts);
+        String message = getResources().getQuantityString(R.plurals.new_post_notifications, amountOfPosts, amountOfPosts);
 
         NotificationCompat.Builder mBuilder =
                 new NotificationCompat.Builder(this)
@@ -86,8 +89,6 @@ public class GetPostsService extends IntentService {
      */
     private Integer fetchTask() {
         Integer result = 0;
-
-        LocalDatabaseHandler localDb = new LocalDatabaseHandler(getApplicationContext());
 
         //get courses
         List<Course> courses = getCourses();

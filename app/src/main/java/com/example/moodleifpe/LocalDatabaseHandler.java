@@ -142,6 +142,13 @@ public class LocalDatabaseHandler extends SQLiteOpenHelper {
         db.close();
     }
 
+    public void deleteUser() {
+        SQLiteDatabase db = this.getWritableDatabase();
+        int deletedRows = db.delete(TABLE_USER, null, null);
+        Log.i("LocalDB = deleteUser", "deleted rows: " + deletedRows);
+        db.close();
+    }
+
     public void insertForum(Forum forum) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
