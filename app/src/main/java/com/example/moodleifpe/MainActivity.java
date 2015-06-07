@@ -109,9 +109,6 @@ public class MainActivity extends AppCompatActivity {
         if (id == R.id.action_logout) {
             asyncTask = new LogoutTask().execute();
             return true;
-        } else if (id == R.id.action_refresh) {
-            asyncTask = new GetPostsTask().execute();
-            return true;
         }
         return false;
     }
