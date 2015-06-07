@@ -16,8 +16,10 @@ import java.util.List;
  * Created by vanessagomes on 6/4/15.
  */
 public class PostAdapter extends ArrayAdapter<Post> {
+    private Context mContext;
     public PostAdapter(Context context, List<Post> posts) {
         super(context, 0, posts);
+        this.mContext = context;
     }
 
     @Override
@@ -30,22 +32,24 @@ public class PostAdapter extends ArrayAdapter<Post> {
             convertView = LayoutInflater.from(getContext()).inflate(R.layout.item_post, parent, false);
         }
         // Lookup view for data population
-        TextView authorName = (TextView) convertView.findViewById(R.id.post_author_name);
+        TextView authorNameAndForumTitle = (TextView) convertView.findViewById(R.id.post_author_name_and_forum_title);
         TextView message = (TextView) convertView.findViewById(R.id.post_message);
-        TextView forumTitle = (TextView) convertView.findViewById(R.id.post_forum_title);
         TextView courseTitle = (TextView) convertView.findViewById(R.id.post_course_title);
         TextView dateOfMessage = (TextView) convertView.findViewById(R.id.post_date);
 
-
         // Populate the data into the template view using the data object
         courseTitle.setText(post.getCourseTitle());
-        forumTitle.setText(post.getForumTitle().trim());
-        authorName.setText(post.getAuthorName().trim());
         dateOfMessage.setText(parseDateToString(post.getDate()));
-        message.setText(substring(post.getMessage().trim(), 140));
+        authorNameAndForumTitle.setText(buildAuthorForumText(post));
+        message.setText(substring(post.getMessage().trim(), 100));
+
 
         // Return the completed view to render on screen
         return convertView;
+    }
+
+    private String buildAuthorForumText(Post post) {
+        return  post.getAuthorName().trim() +" " + mContext.getText(R.string.posted_at) + " " + post.getForumTitle();
     }
 
     /**

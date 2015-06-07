@@ -8,11 +8,11 @@
     <string name="new_posts">novas postagens.</string>
     <string name="action_refresh">Atualizar</string>
     <string name="posted_at_forum">Postado no fórum: </string>
+    <string name="posted_at">postou no</string>
     <string name="login_button">Acessar</string>
     <string name="hint_username">Nome de usuário</string>
     <string name="hint_password">Senha</string>
     <string name="login_fail">Usuário ou Senha incorretos. Por favor tente novamente.</string>
-
 
     <!--<string name="new_posts_notifications">Você tem postagens não lidas!</string>-->
     <plurals name="new_post_notifications">
