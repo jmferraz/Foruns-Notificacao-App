@@ -69,6 +69,7 @@ public class MainActivity extends AppCompatActivity {
         Date date = localDb.getDateOfLastCheck();
         if (date == null) {
             Calendar calendar = Calendar.getInstance();
+//            calendar.set(2015, Calendar.JUNE, 01, 0, 0);
             calendar.set(Calendar.HOUR_OF_DAY, 0);
             calendar.set(Calendar.MINUTE, 0);
             calendar.set(Calendar.SECOND, 0);
@@ -131,7 +132,6 @@ public class MainActivity extends AppCompatActivity {
             localDb = new LocalDatabaseHandler(getApplicationContext());
 
             List<Post> posts = localDb.listPost();
-//            List<Post> posts = localDb.listPost(getLastCheckedDate().getTime());
             return posts;
         }
 
@@ -139,10 +139,11 @@ public class MainActivity extends AppCompatActivity {
         protected void onPostExecute(List<Post> posts) {
             progressBar.setVisibility(View.INVISIBLE);
             if (posts.isEmpty()) {
+                textView.setVisibility(View.VISIBLE);
                 textView.setText(R.string.no_new_posts);
             } else {
                 posts = sortPosts(posts);
-                textView.setText(posts.size() + " " + getText(R.string.new_posts) + "\n");
+                textView.setVisibility(View.INVISIBLE);
                 // Attach the adapter to a ListView
                 ListView listView = (ListView) findViewById(R.id.list_posts);
                 listView.setAdapter(new PostAdapter(getApplicationContext(), posts));
@@ -188,6 +189,8 @@ public class MainActivity extends AppCompatActivity {
         protected Void doInBackground(Void... params) {
             LocalDatabaseHandler localDb = new LocalDatabaseHandler(getApplicationContext());
             localDb.deleteUser();
+            localDb.deletePosts();
+            localDb.deleteDateOfLastFetch();
             return null;
         }
 

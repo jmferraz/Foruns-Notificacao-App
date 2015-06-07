@@ -23,15 +23,6 @@ public class LocalDatabaseHandler extends SQLiteOpenHelper {
     private static final int DATABASE_VERSION = 1;
     private static final String DATABASE_NAME = "MOODLE_IFPE_DATABASE";
 
-    public final String TABLE_COURSE = "table_course";
-    private final String COURSE_TITLE = "course_title";
-    private final String COURSE_LINK = "course_link";
-
-    public final String TABLE_FORUM = "table_forum";
-    private final String FORUM_COURSE_NAME = "forum_course_name";
-    private final String FORUM_LINK = "forum_link";
-    private final String FORUM_TITLE = "forum_title";
-
     public final String TABLE_POST = "table_post";
     private final String POST_COURSE_TITLE = "post_course_title";
     private final String POST_AUTHOR_NAME = "post_author_name";
@@ -52,14 +43,6 @@ public class LocalDatabaseHandler extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        String CREATE_TABLE_COURSE = "CREATE TABLE " + TABLE_COURSE + " ("
-                + COURSE_TITLE
-                + " VARCHAR" + ",  " + COURSE_LINK + " VARCHAR)";
-
-        String CREATE_TABLE_FORUM = "CREATE TABLE " + TABLE_FORUM
-                + " (" + FORUM_COURSE_NAME + " VARCHAR"
-                + ",  " + FORUM_LINK + " VARCHAR"
-                + ",  " + FORUM_TITLE + " VARCHAR)";
 
         String CREATE_TABLE_POST = "CREATE TABLE " + TABLE_POST + " ("
                 + POST_COURSE_TITLE + " VARCHAR"
@@ -75,8 +58,6 @@ public class LocalDatabaseHandler extends SQLiteOpenHelper {
                 + USER_USERNAME
                 + " VARCHAR" + ",  " + USER_PASSWORD + " VARCHAR)";
 
-        db.execSQL(CREATE_TABLE_COURSE);
-        db.execSQL(CREATE_TABLE_FORUM);
         db.execSQL(CREATE_TABLE_POST);
         db.execSQL(CREATE_TABLE_DATE);
         db.execSQL(CREATE_TABLE_USER);
@@ -84,8 +65,6 @@ public class LocalDatabaseHandler extends SQLiteOpenHelper {
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_COURSE);
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_FORUM);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_POST);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_DATE);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_USER);
@@ -120,17 +99,6 @@ public class LocalDatabaseHandler extends SQLiteOpenHelper {
         return password;
     }
 
-    public void insertCourse(Course course) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues values = new ContentValues();
-        values.put(COURSE_TITLE, course.getTitle());
-        values.put(COURSE_LINK, course.getLink());
-
-        long insertedRow = db.insert(TABLE_COURSE, null, values);
-        Log.i("LocalDB = insertCourse", "inserted rows: " + insertedRow);
-        db.close();
-    }
-
     public void insertUser(String username, String password) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
@@ -146,18 +114,6 @@ public class LocalDatabaseHandler extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getWritableDatabase();
         int deletedRows = db.delete(TABLE_USER, null, null);
         Log.i("LocalDB = deleteUser", "deleted rows: " + deletedRows);
-        db.close();
-    }
-
-    public void insertForum(Forum forum) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues values = new ContentValues();
-        values.put(FORUM_COURSE_NAME, forum.getCourseTitle());
-        values.put(FORUM_LINK, forum.getLink());
-        values.put(FORUM_TITLE, forum.getTitle());
-
-        long insertedRow = db.insert(TABLE_FORUM, null, values);
-        Log.i("LocalDB = insertForum", "inserted rows: " + insertedRow);
         db.close();
     }
 
@@ -213,42 +169,11 @@ public class LocalDatabaseHandler extends SQLiteOpenHelper {
         db.close();
     }
 
-
-    public List<Course> listCourses() {
-        List<Course> courses = new ArrayList<Course>();
-        SQLiteDatabase db = this.getReadableDatabase();
-        Cursor c = db.rawQuery("SELECT  " + COURSE_LINK + ", "
-                + COURSE_TITLE + " FROM " + TABLE_COURSE, null);
-        if (c.moveToFirst()) {
-            do {
-                Course course = new Course();
-                course.setLink(c.getString(0));
-                course.setTitle(c.getString(1));
-                courses.add(course);
-            } while (c.moveToNext());
-        }
-        c.close();
+    public void deletePosts() {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.execSQL("DELETE FROM " + TABLE_POST);
         db.close();
-        return courses;
     }
-
-    public List<Forum> listForum() {
-        List<Forum> forums = new ArrayList<Forum>();
-        SQLiteDatabase db = this.getReadableDatabase();
-        Cursor c = db.rawQuery("SELECT  " + FORUM_COURSE_NAME + ", "
-                + FORUM_TITLE + ", "
-                + FORUM_LINK + " FROM " + TABLE_FORUM, null);
-        if (c.moveToFirst()) {
-            do {
-                Forum forum = new Forum(c.getString(0), c.getString(1), c.getString(2));
-                forums.add(forum);
-            } while (c.moveToNext());
-        }
-        c.close();
-        db.close();
-        return forums;
-    }
-
     /**
      * Lists all posts stored in the Database.
      */
