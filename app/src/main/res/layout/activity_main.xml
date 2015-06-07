@@ -8,7 +8,7 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context=".MainActivity"
     android:orientation="vertical"
-    android:background="#8a75caff">
+    android:background="#b1e2f6">
 
     <TextView
         android:id="@+id/text"
