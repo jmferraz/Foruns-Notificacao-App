@@ -24,8 +24,6 @@ import retrofit.client.Response;
  */
 public class GetPostsService extends IntentService {
     private static final String ENDPOINT = "http://dead2.ifpe.edu.br/moodle";
-    private static final String USERNAME = "estudantevisitante";
-    private static final String PASSWORD = "2Patos";
 
     private IFPEService service;
     private LocalDatabaseHandler localDb;
@@ -116,9 +114,14 @@ public class GetPostsService extends IntentService {
     private List<Course> getCourses() {
         List<Course> courses = new ArrayList<Course>();
         try {
-            final Response response = service.auth(USERNAME, PASSWORD);
-            String indexPage = Utils.responseToString(response);
-            courses.addAll(HtmlExtractor.getCourses(indexPage));
+            LocalDatabaseHandler localDatabaseHandler = new LocalDatabaseHandler(this);
+            String username = localDatabaseHandler.getUsername();
+            String password = localDatabaseHandler.getPassword();
+            if (username != null && password != null) {
+                final Response response = service.auth(username, password);
+                String indexPage = Utils.responseToString(response);
+                courses.addAll(HtmlExtractor.getCourses(indexPage));
+            }
         } catch (RetrofitError e) {
             Log.e("MainActivity", "Error retrieving index page: " + e.getMessage());
         }
