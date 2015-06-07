@@ -2,7 +2,13 @@
 
     <!-- Base application theme. -->
     <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
-        <!-- Customize your theme here. -->
+        <item name="colorPrimary">#4fb0e0</item>
+        <item name="actionBarStyle">@style/MyActionBar</item>
+    </style>
+
+    <style name="MyActionBar" parent="Widget.AppCompat.Light.ActionBar.Solid">
+        <item name="displayOptions">useLogo|showTitle|showHome</item>
+        <item name="logo">@drawable/action_bar_logo</item>
     </style>
 
 </resources>
