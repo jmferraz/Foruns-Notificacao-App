@@ -85,7 +85,7 @@ public class GetPostsService extends IntentService {
      *
      * @return The amount of Posts retrieved.
      */
-    private Integer fetchTask() {
+    public Integer fetchTask() {
         Integer result = 0;
 
         //get courses

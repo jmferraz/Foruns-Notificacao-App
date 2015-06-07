@@ -57,14 +57,17 @@ public class MainActivity extends AppCompatActivity {
         Intent alarmIntent = new Intent(this, AlarmReceiver.class);
         pendingIntent = PendingIntent.getBroadcast(this, 0, alarmIntent, 0);
         //Setting initial date
-        setInitialDate();
-        startAlarm();
+        boolean inserted = setInitialDate();
+        if (inserted) {
+            startAlarm();
+        }
     }
 
     /**
      * By default, initial date is current date at time 00:00:00.
      */
-    private void setInitialDate() {
+    private boolean setInitialDate() {
+        boolean inserted = false;
         LocalDatabaseHandler localDb = new LocalDatabaseHandler(getApplicationContext());
         Date date = localDb.getDateOfLastCheck();
         if (date == null) {
@@ -74,12 +77,14 @@ public class MainActivity extends AppCompatActivity {
             calendar.set(Calendar.MINUTE, 0);
             calendar.set(Calendar.SECOND, 0);
             localDb.replaceDateOfLastFetch(calendar.getTime());
+            inserted = true;
         }
+        return inserted;
     }
 
     public void startAlarm() {
         alertManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-        //TODO Pesquisando a cada 2 minutos. precisa mudar para 1000*60*60*8 (8h)
+        // Pesquisando a cada 2 minutos. precisa mudar para 1000*60*60*8 (8h)
         int interval = 1000 * 60 * 2;
         alertManager.setRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), interval, pendingIntent);
         Log.i("com.example.moodleifpe", "--->Alarm Set");
