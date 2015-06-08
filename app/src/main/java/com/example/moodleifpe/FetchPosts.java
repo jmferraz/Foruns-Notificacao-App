@@ -6,7 +6,6 @@ import android.util.Log;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
-import java.util.Random;
 
 import retrofit.RestAdapter;
 import retrofit.RetrofitError;
@@ -22,7 +21,7 @@ public class FetchPosts {
     private LocalDatabaseHandler localDb;
     private Context context;
 
-    public FetchPosts(Context context){
+    public FetchPosts(Context context) {
         this.context = context;
         localDb = new LocalDatabaseHandler(context);
         if (localDb.getUsername() == null) {
@@ -41,26 +40,35 @@ public class FetchPosts {
     public Integer fetchPostsTask() {
         Integer result = 0;
 
-        //get courses
-        List<Course> courses = getCourses();
+        try {
+            //get courses
+            List<Course> courses = getCourses();
 
-        //get forums
-        List<Forum> forums = getForums(courses);
+            //get forums
+            List<Forum> forums = getForums(courses);
 
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTime(localDb.getDateOfLastCheck());
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTime(localDb.getDateOfLastCheck());
 
-        Log.i("com.example.moodleifpe", "FetchPosts: getPost will fetch from the date: " + calendar.getTime().toString());
-        List<Post> posts = getPosts(forums, calendar);
-
-        if (posts != null) {
-            savePostsToLocalDb(posts);
-            result = posts.size();
+            Log.i("com.example.moodleifpe", "FetchPosts: getPost will fetch from the date: " + calendar.getTime().toString());
+            List<Post> posts = null;
+            posts = getPosts(forums, calendar);
+            if (posts != null) {
+                savePostsToLocalDb(posts);
+                result = posts.size();
+            }
+        } catch (InternetConnectionException e) {
+            localDb.replaceDateOfLastFetch(localDb.getDateOfLastCheck());
+            Log.e(this.getClass().getName(), "FetchPosts: it was not possible to retrieve " +
+                    "the posts. The same date will be checked next time the alarm works.");
+            Log.i(this.getClass().getName(), "FetchPosts - The date will be: "
+                    + localDb.getDateOfLastCheck().toString());
         }
         return result;
     }
 
-    private void savePostsToLocalDb(List<Post> posts){
+    private void savePostsToLocalDb(List<Post> posts) {
+        Log.i(this.getClass().getName(), "savePostsToLocalDb");
         for (Post post : posts) {
             localDb.insertPost(post);
         }
@@ -68,7 +76,7 @@ public class FetchPosts {
         localDb.replaceDateOfLastFetch(Calendar.getInstance().getTime());
     }
 
-    private List<Course> getCourses() {
+    private List<Course> getCourses() throws InternetConnectionException {
         List<Course> courses = new ArrayList<Course>();
         try {
             LocalDatabaseHandler localDatabaseHandler = new LocalDatabaseHandler(this.context);
@@ -80,12 +88,13 @@ public class FetchPosts {
                 courses.addAll(HtmlExtractor.getCourses(indexPage));
             }
         } catch (RetrofitError e) {
-            Log.e("FetchPosts", "Error retrieving index page: " + e.getMessage());
+            Log.e(this.getClass().getName(), "getCourses - Error retrieving index page: " + e.getMessage());
+            throw new InternetConnectionException(e.getMessage());
         }
         return courses;
     }
 
-    private List<Forum> getForums(List<Course> courses) {
+    private List<Forum> getForums(List<Course> courses) throws InternetConnectionException {
         List<Forum> forums = new ArrayList<Forum>();
         for (Course course : courses) {
             String id = course.getLink().split("\\?id=")[1];
@@ -94,13 +103,14 @@ public class FetchPosts {
                 String coursePage = Utils.responseToString(response);
                 forums.addAll(HtmlExtractor.getForums(course, coursePage));
             } catch (RetrofitError e) {
-                Log.e("FetchPosts", "Error retrieving course page: " + e.getMessage());
+                Log.e(this.getClass().getName(), "getForums - Error retrieving index page: " + e.getMessage());
+                throw new InternetConnectionException(e.getMessage());
             }
         }
         return forums;
     }
 
-    private List<Post> getPosts(List<Forum> forums, Calendar date) {
+    private List<Post> getPosts(List<Forum> forums, Calendar date) throws InternetConnectionException {
         List<Post> posts = new ArrayList<Post>();
         for (Forum forum : forums) {
             String id = forum.getLink().split("\\?id=")[1];
@@ -109,7 +119,8 @@ public class FetchPosts {
                 String forumPage = Utils.responseToString(response);
                 posts.addAll(HtmlExtractor.getPosts(forum, forumPage, date));
             } catch (RetrofitError e) {
-                Log.e("FetchPosts", "Error retrieving forum page: " + e.getMessage());
+                Log.e(this.getClass().getName(), "getPosts - Error retrieving index page: " + e.getMessage());
+                throw new InternetConnectionException(e.getMessage());
             }
         }
         return posts;

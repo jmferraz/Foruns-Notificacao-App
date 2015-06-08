@@ -144,16 +144,24 @@ public class LocalDatabaseHandler extends SQLiteOpenHelper {
                 + ", " + POST_MESSAGE
                 + ", " + POST_DATE
                 + ", " + POST_FORUM_TITLE
-                + " FROM " + TABLE_POST, null);
+                + " FROM " + TABLE_POST
+                + " WHERE " + POST_AUTHOR_NAME + " = '" + post.getAuthorName() + "'"
+                + " AND " + POST_MESSAGE + " = '" + post.getMessage()+ "'"
+                + " AND " + POST_DATE + " = '" + parseDateToString(post.getDate())+ "'"
+                + " AND " + POST_FORUM_TITLE + " = '" + post.getForumTitle()+ "'"
+                , null);
 
         Post result = null;
         if (c.moveToFirst()) {
             try {
                 result = new Post(c.getString(0), c.getString(1), c.getString(2), parseStringToDate(c.getString(3)), c.getString(4));
+
             } catch (ParseException e) {
                 result = new Post(c.getString(0), c.getString(1), c.getString(2), null, c.getString(4));
             }
         }
+        c.close();
+        db.close();
         return result;
     }
 
@@ -165,7 +173,6 @@ public class LocalDatabaseHandler extends SQLiteOpenHelper {
         Date date = null;
         try {
             if (c.moveToFirst()) {
-//                Log.i("LocalDB", "----->getDateOfLastCheck()- cursor.getType(0): " + c.getType(c.getColumnIndex(DATE_LAST_CHECK)));
                 String dateString = c.getString(0);
                 date = parseStringToDate(dateString);
             }
@@ -174,6 +181,8 @@ public class LocalDatabaseHandler extends SQLiteOpenHelper {
         } catch (Exception e1) {
             Log.e("LocalDB", "error at getDateOfLastCheck: " + e1.getMessage());
         }
+        c.close();
+        db.close();
         return date;
     }
 
