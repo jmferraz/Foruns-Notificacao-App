@@ -118,17 +118,39 @@ public class LocalDatabaseHandler extends SQLiteOpenHelper {
     }
 
     public void insertPost(Post post) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues values = new ContentValues();
-        values.put(POST_COURSE_TITLE, post.getCourseTitle());
-        values.put(POST_AUTHOR_NAME, post.getAuthorName());
-        values.put(POST_MESSAGE, post.getMessage());
-        values.put(POST_DATE, parseDateToString(post.getDate()));
-        values.put(POST_FORUM_TITLE, post.getForumTitle());
+        Post existingPost = getPost(post);
+        if (existingPost == null) {
+            SQLiteDatabase db = this.getWritableDatabase();
+            ContentValues values = new ContentValues();
+            values.put(POST_COURSE_TITLE, post.getCourseTitle());
+            values.put(POST_AUTHOR_NAME, post.getAuthorName());
+            values.put(POST_MESSAGE, post.getMessage());
+            values.put(POST_DATE, parseDateToString(post.getDate()));
+            values.put(POST_FORUM_TITLE, post.getForumTitle());
+            long insertedRow = db.insert(TABLE_POST, null, values);
+            Log.i("com.example.moodleifpe", "LocalDB - insertPost - inserted rows: " + insertedRow);
+            db.close();
+        }
+    }
 
-        long insertedRow = db.insert(TABLE_POST, null, values);
-        Log.i("com.example.moodleifpe", "LocalDB - insertPost - inserted rows: " + insertedRow);
-        db.close();
+    public Post getPost(Post post) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor c = db.rawQuery("SELECT  " + POST_COURSE_TITLE
+                + ", " + POST_AUTHOR_NAME
+                + ", " + POST_MESSAGE
+                + ", " + POST_DATE
+                + ", " + POST_FORUM_TITLE
+                + " FROM " + TABLE_POST, null);
+
+        Post result = null;
+        if (c.moveToFirst()) {
+            try {
+                result = new Post(c.getString(0), c.getString(1), c.getString(2), parseStringToDate(c.getString(3)), c.getString(4));
+            } catch (ParseException e) {
+                result = new Post(c.getString(0), c.getString(1), c.getString(2), null, c.getString(4));
+            }
+        }
+        return result;
     }
 
     public Date getDateOfLastCheck() {
@@ -174,6 +196,7 @@ public class LocalDatabaseHandler extends SQLiteOpenHelper {
         db.execSQL("DELETE FROM " + TABLE_POST);
         db.close();
     }
+
     /**
      * Lists all posts stored in the Database.
      */

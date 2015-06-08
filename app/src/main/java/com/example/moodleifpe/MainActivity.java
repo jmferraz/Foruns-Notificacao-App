@@ -42,9 +42,14 @@ public class MainActivity extends AppCompatActivity {
         textView = (TextView) findViewById(R.id.text);
         textView.setMovementMethod(new ScrollingMovementMethod());
 
-        configureAlarmSettings();
+        boolean firstTimeOfUse = configureAlarmSettings();
+
+        if (firstTimeOfUse) {
+            asyncTask = new FetchPostsFirstTimeTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        }
+
         Utils.enableCookies();
-        asyncTask = new GetPostsTask().execute();
+        asyncTask = new GetPostsTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
 
     @Override
@@ -52,7 +57,12 @@ public class MainActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
     }
 
-    private void configureAlarmSettings() {
+    /**
+     * This method will configure the Alarm Settings. It will return true if it is the first time the Alarm is being set.
+     *
+     * @return
+     */
+    private boolean configureAlarmSettings() {
         // Retrieve a PendingIntent that will perform a broadcast
         Intent alarmIntent = new Intent(this, AlarmReceiver.class);
         pendingIntent = PendingIntent.getBroadcast(this, 0, alarmIntent, 0);
@@ -61,6 +71,7 @@ public class MainActivity extends AppCompatActivity {
         if (inserted) {
             startAlarm();
         }
+        return inserted;
     }
 
     /**
@@ -84,8 +95,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void startAlarm() {
         alertManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-        // Pesquisando a cada 2 minutos. precisa mudar para 1000*60*60*8 (8h)
-        int interval = 1000 * 60 * 2;
+        int interval = ForumsAlarm.ALARM_INTERVAL;
         alertManager.setRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), interval, pendingIntent);
         Log.i("com.example.moodleifpe", "--->Alarm Set");
     }
@@ -202,6 +212,30 @@ public class MainActivity extends AppCompatActivity {
             Intent intent = new Intent(MainActivity.this, LoginActivity.class);
             startActivity(intent);
             finish();
+        }
+
+        @Override
+        protected void onCancelled() {
+            progressBar.setVisibility(View.INVISIBLE);
+        }
+    }
+
+    private class FetchPostsFirstTimeTask extends AsyncTask<Void, Void, Void> {
+        @Override
+        protected void onPreExecute() {
+            progressBar.setVisibility(View.VISIBLE);
+        }
+
+        @Override
+        protected Void doInBackground(Void... params) {
+            FetchPosts fetchPosts = new FetchPosts(getApplicationContext());
+            fetchPosts.fetchPostsTask();
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            progressBar.setVisibility(View.INVISIBLE);
         }
 
         @Override
