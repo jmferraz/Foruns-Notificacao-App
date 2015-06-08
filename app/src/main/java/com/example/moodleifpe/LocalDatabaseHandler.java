@@ -82,6 +82,8 @@ public class LocalDatabaseHandler extends SQLiteOpenHelper {
             username = c.getString(0);
 
         }
+        c.close();
+        db.close();
         return username;
     }
 
@@ -96,6 +98,8 @@ public class LocalDatabaseHandler extends SQLiteOpenHelper {
             password = c.getString(0);
 
         }
+        c.close();
+        db.close();
         return password;
     }
 
