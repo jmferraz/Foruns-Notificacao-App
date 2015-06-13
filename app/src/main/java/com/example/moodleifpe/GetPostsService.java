@@ -64,6 +64,7 @@ public class GetPostsService extends IntentService {
                         .setAutoCancel(true);
         // Creates an explicit intent for an Activity in your app
         Intent resultIntent = new Intent(this, MainActivity.class);
+        resultIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
                 resultIntent, 0);
 
