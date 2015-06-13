@@ -13,6 +13,7 @@
     <string name="hint_username">Nome de usuário</string>
     <string name="hint_password">Senha</string>
     <string name="login_fail">Usuário ou Senha incorretos. Por favor tente novamente.</string>
+    <string name="connection_fail">Você está sem conexão à Internet. Tente novamente quando estiver online.</string>
 
     <!--<string name="new_posts_notifications">Você tem postagens não lidas!</string>-->
     <plurals name="new_post_notifications">

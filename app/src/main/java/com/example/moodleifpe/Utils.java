@@ -20,6 +20,7 @@ import retrofit.client.Response;
  * Created by mateus on 01/06/15.
  */
 public class Utils {
+    public static final String ENDPOINT_LINK = "http://dead2.ifpe.edu.br/moodle";
 
     public static String responseToString(Response result) {
         BufferedReader reader;

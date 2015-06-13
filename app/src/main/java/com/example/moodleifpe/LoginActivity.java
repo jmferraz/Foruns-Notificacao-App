@@ -5,8 +5,6 @@ import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ProgressBar;
@@ -14,6 +12,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import retrofit.RestAdapter;
+import retrofit.RetrofitError;
 import retrofit.client.Response;
 
 
@@ -73,6 +72,10 @@ public class LoginActivity extends Activity {
         Toast.makeText(getApplicationContext(), getText(R.string.login_fail), Toast.LENGTH_LONG).show();
     }
 
+    private void toastInternetConnectionFail() {
+        Toast.makeText(getApplicationContext(), getText(R.string.connection_fail), Toast.LENGTH_LONG).show();
+    }
+
     private void launchMainActivity() {
         Intent intent = new Intent(LoginActivity.this, MainActivity.class);
         startActivity(intent);
@@ -80,6 +83,7 @@ public class LoginActivity extends Activity {
     }
 
     private class AuthUserTask extends AsyncTask<Void, Void, Void> {
+        private String exceptionMessage = "";
 
         @Override
         protected void onPreExecute() {
@@ -94,11 +98,13 @@ public class LoginActivity extends Activity {
                 if (HtmlExtractor.isAuth(indexPage)) {
                     localDb.insertUser(username, password);
                 } else {
+                    exceptionMessage = "cancelled";
                     cancel(true);
                 }
             } catch (Exception e) {
+                exceptionMessage = e.getMessage();
                 cancel(true);
-                Log.e(getClass().getSimpleName(), e.getMessage());
+                Log.e(getClass().getSimpleName(), exceptionMessage);
             }
             return null;
         }
@@ -112,7 +118,11 @@ public class LoginActivity extends Activity {
         @Override
         protected void onCancelled() {
             progressBar.setVisibility(View.INVISIBLE);
-            toastLoginFail();
+            if (exceptionMessage.startsWith("Unable to resolve host")) {
+                toastInternetConnectionFail();
+            } else if (!exceptionMessage.isEmpty()) {
+                toastLoginFail();
+            }
         }
     }
 }

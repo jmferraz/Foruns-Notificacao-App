@@ -39,4 +39,21 @@ public class Post {
     public String getForumTitle() {
         return forumTitle;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        boolean result = false;
+        if (o == null) {
+            result = false;
+        } else if (o instanceof Post) {
+            Post post = (Post) o;
+            if (this.getCourseTitle().equals(post.getCourseTitle()) &&
+                    this.getAuthorName().equals(post.getAuthorName()) &&
+                    this.getMessage().equals(post.getMessage()) &&
+                    this.getForumTitle().equals(post.getForumTitle())) {
+                result = true;
+            }
+        }
+        return result;
+    }
 }

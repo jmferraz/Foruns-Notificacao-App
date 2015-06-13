@@ -23,7 +23,7 @@ import retrofit.client.Response;
  * Created by vanessagomes on 6/3/15.
  */
 public class GetPostsService extends IntentService {
-    private static final String ENDPOINT = "http://dead2.ifpe.edu.br/moodle";
+    private static final String ENDPOINT = Utils.ENDPOINT_LINK;
 
     private IFPEService service;
     private LocalDatabaseHandler localDb;
@@ -39,9 +39,8 @@ public class GetPostsService extends IntentService {
         if (localDb.getUsername() == null) {
             return;
         }
-        RestAdapter restAdapter = new RestAdapter.Builder().setEndpoint(ENDPOINT).build();
-        service = restAdapter.create(IFPEService.class);
-        Integer amountOfPosts = fetchTask();
+        FetchPosts fetchPosts= new FetchPosts(this);
+        Integer amountOfPosts = fetchPosts.fetchPostsTask();
 
         if (amountOfPosts > 0) {
             sendNotification(amountOfPosts);
@@ -81,87 +80,87 @@ public class GetPostsService extends IntentService {
         mNotificationManager.notify(getRandomInt(), mBuilder.build());
     }
 
-    /**
-     * Fetching new Posts.
-     *
-     * @return The amount of Posts retrieved.
-     */
-    private Integer fetchTask() {
-        Integer result = 0;
-
-        //get courses
-        List<Course> courses = getCourses();
-
-        //get forums
-        List<Forum> forums = getForums(courses);
-
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTime(localDb.getDateOfLastCheck());
-
-        Log.i("com.example.moodleifpe", "GetPostsServices: getPost will fetch from the date: " + calendar.getTime().toString());
-        List<Post> posts = getPosts(forums, calendar);
-
-        if (posts != null) {
-            result = posts.size();
-            for (Post post : posts) {
-                localDb.insertPost(post);
-            }
-            //Sets current date on Local DB.
-            localDb.replaceDateOfLastFetch(Calendar.getInstance().getTime());
-        }
-        return result;
-    }
-
-    private List<Course> getCourses() {
-        List<Course> courses = new ArrayList<Course>();
-        try {
-            LocalDatabaseHandler localDatabaseHandler = new LocalDatabaseHandler(this);
-            String username = localDatabaseHandler.getUsername();
-            String password = localDatabaseHandler.getPassword();
-            if (username != null && password != null) {
-                final Response response = service.auth(username, password);
-                String indexPage = Utils.responseToString(response);
-                courses.addAll(HtmlExtractor.getCourses(indexPage));
-            }
-        } catch (RetrofitError e) {
-            Log.e("MainActivity", "Error retrieving index page: " + e.getMessage());
-        }
-        return courses;
-    }
-
-    private List<Forum> getForums(List<Course> courses) {
-        List<Forum> forums = new ArrayList<Forum>();
-        for (Course course : courses) {
-            String id = course.getLink().split("\\?id=")[1];
-            try {
-                Response response = service.getCourse(id);
-                String coursePage = Utils.responseToString(response);
-                forums.addAll(HtmlExtractor.getForums(course, coursePage));
-            } catch (RetrofitError e) {
-                Log.e("MainActivity", "Error retrieving course page: " + e.getMessage());
-            }
-        }
-        return forums;
-    }
-
-    private List<Post> getPosts(List<Forum> forums, Calendar date) {
-        List<Post> posts = new ArrayList<Post>();
-        for (Forum forum : forums) {
-            String id = forum.getLink().split("\\?id=")[1];
-            try {
-                Response response = service.getForum(id);
-                String forumPage = Utils.responseToString(response);
-                posts.addAll(HtmlExtractor.getPosts(forum, forumPage, date));
-            } catch (RetrofitError e) {
-                Log.e("MainActivity", "Error retrieving forum page: " + e.getMessage());
-            }
-        }
-        return posts;
-    }
-
     public int getRandomInt() {
         int randomNumber = new Random().nextInt(Integer.MAX_VALUE) + 1;
         return randomNumber;
     }
+//    /**
+//     * Fetching new Posts.
+//     *
+//     * @return The amount of Posts retrieved.
+//     */
+//    public Integer fetchTask() {
+//        Integer result = 0;
+//
+//        //get courses
+//        List<Course> courses = getCourses();
+//
+//        //get forums
+//        List<Forum> forums = getForums(courses);
+//
+//        Calendar calendar = Calendar.getInstance();
+//        calendar.setTime(localDb.getDateOfLastCheck());
+//
+//        Log.i("com.example.moodleifpe", "GetPostsServices: getPost will fetch from the date: " + calendar.getTime().toString());
+//        List<Post> posts = getPosts(forums, calendar);
+//
+//        if (posts != null) {
+//            result = posts.size();
+//            for (Post post : posts) {
+//                localDb.insertPost(post);
+//            }
+//            //Sets current date on Local DB.
+//            localDb.replaceDateOfLastFetch(Calendar.getInstance().getTime());
+//        }
+//        return result;
+//    }
+//
+//    private List<Course> getCourses() {
+//        List<Course> courses = new ArrayList<Course>();
+//        try {
+//            LocalDatabaseHandler localDatabaseHandler = new LocalDatabaseHandler(this);
+//            String username = localDatabaseHandler.getUsername();
+//            String password = localDatabaseHandler.getPassword();
+//            if (username != null && password != null) {
+//                final Response response = service.auth(username, password);
+//                String indexPage = Utils.responseToString(response);
+//                courses.addAll(HtmlExtractor.getCourses(indexPage));
+//            }
+//        } catch (RetrofitError e) {
+//            Log.e("MainActivity", "Error retrieving index page: " + e.getMessage());
+//        }
+//        return courses;
+//    }
+//
+//    private List<Forum> getForums(List<Course> courses) {
+//        List<Forum> forums = new ArrayList<Forum>();
+//        for (Course course : courses) {
+//            String id = course.getLink().split("\\?id=")[1];
+//            try {
+//                Response response = service.getCourse(id);
+//                String coursePage = Utils.responseToString(response);
+//                forums.addAll(HtmlExtractor.getForums(course, coursePage));
+//            } catch (RetrofitError e) {
+//                Log.e("MainActivity", "Error retrieving course page: " + e.getMessage());
+//            }
+//        }
+//        return forums;
+//    }
+//
+//    private List<Post> getPosts(List<Forum> forums, Calendar date) {
+//        List<Post> posts = new ArrayList<Post>();
+//        for (Forum forum : forums) {
+//            String id = forum.getLink().split("\\?id=")[1];
+//            try {
+//                Response response = service.getForum(id);
+//                String forumPage = Utils.responseToString(response);
+//                posts.addAll(HtmlExtractor.getPosts(forum, forumPage, date));
+//            } catch (RetrofitError e) {
+//                Log.e("MainActivity", "Error retrieving forum page: " + e.getMessage());
+//            }
+//        }
+//        return posts;
+//    }
+//
 
 }

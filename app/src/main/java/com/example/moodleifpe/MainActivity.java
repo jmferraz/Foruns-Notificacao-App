@@ -42,9 +42,14 @@ public class MainActivity extends AppCompatActivity {
         textView = (TextView) findViewById(R.id.text);
         textView.setMovementMethod(new ScrollingMovementMethod());
 
-        configureAlarmSettings();
+        boolean firstTimeOfUse = configureAlarmSettings();
+
+        if (firstTimeOfUse) {
+            asyncTask = new FetchPostsFirstTimeTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        }
+
         Utils.enableCookies();
-        asyncTask = new GetPostsTask().execute();
+        asyncTask = new GetPostsTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
 
     @Override
@@ -52,34 +57,45 @@ public class MainActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
     }
 
-    private void configureAlarmSettings() {
+    /**
+     * This method will configure the Alarm Settings. It will return true if it is the first time the Alarm is being set.
+     *
+     * @return
+     */
+    private boolean configureAlarmSettings() {
         // Retrieve a PendingIntent that will perform a broadcast
         Intent alarmIntent = new Intent(this, AlarmReceiver.class);
         pendingIntent = PendingIntent.getBroadcast(this, 0, alarmIntent, 0);
         //Setting initial date
-        setInitialDate();
-        startAlarm();
+        boolean inserted = setInitialDate();
+        if (inserted) {
+            startAlarm();
+        }
+        return inserted;
     }
 
     /**
      * By default, initial date is current date at time 00:00:00.
      */
-    private void setInitialDate() {
+    private boolean setInitialDate() {
+        boolean inserted = false;
         LocalDatabaseHandler localDb = new LocalDatabaseHandler(getApplicationContext());
         Date date = localDb.getDateOfLastCheck();
         if (date == null) {
             Calendar calendar = Calendar.getInstance();
+//            calendar.set(2015, Calendar.JUNE, 01, 0, 0);
             calendar.set(Calendar.HOUR_OF_DAY, 0);
             calendar.set(Calendar.MINUTE, 0);
             calendar.set(Calendar.SECOND, 0);
             localDb.replaceDateOfLastFetch(calendar.getTime());
+            inserted = true;
         }
+        return inserted;
     }
 
     public void startAlarm() {
         alertManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-        //TODO Pesquisando a cada 2 minutos. precisa mudar para 1000*60*60*8 (8h)
-        int interval = 1000 * 60 * 2;
+        int interval = ForumsAlarm.ALARM_INTERVAL;
         alertManager.setRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), interval, pendingIntent);
         Log.i("com.example.moodleifpe", "--->Alarm Set");
     }
@@ -128,7 +144,6 @@ public class MainActivity extends AppCompatActivity {
             localDb = new LocalDatabaseHandler(getApplicationContext());
 
             List<Post> posts = localDb.listPost();
-//            List<Post> posts = localDb.listPost(getLastCheckedDate().getTime());
             return posts;
         }
 
@@ -136,10 +151,11 @@ public class MainActivity extends AppCompatActivity {
         protected void onPostExecute(List<Post> posts) {
             progressBar.setVisibility(View.INVISIBLE);
             if (posts.isEmpty()) {
+                textView.setVisibility(View.VISIBLE);
                 textView.setText(R.string.no_new_posts);
             } else {
                 posts = sortPosts(posts);
-                textView.setText(posts.size() + " " + getText(R.string.new_posts) + "\n");
+                textView.setVisibility(View.INVISIBLE);
                 // Attach the adapter to a ListView
                 ListView listView = (ListView) findViewById(R.id.list_posts);
                 listView.setAdapter(new PostAdapter(getApplicationContext(), posts));
@@ -185,6 +201,8 @@ public class MainActivity extends AppCompatActivity {
         protected Void doInBackground(Void... params) {
             LocalDatabaseHandler localDb = new LocalDatabaseHandler(getApplicationContext());
             localDb.deleteUser();
+            localDb.deletePosts();
+            localDb.deleteDateOfLastFetch();
             return null;
         }
 
@@ -194,6 +212,30 @@ public class MainActivity extends AppCompatActivity {
             Intent intent = new Intent(MainActivity.this, LoginActivity.class);
             startActivity(intent);
             finish();
+        }
+
+        @Override
+        protected void onCancelled() {
+            progressBar.setVisibility(View.INVISIBLE);
+        }
+    }
+
+    private class FetchPostsFirstTimeTask extends AsyncTask<Void, Void, Void> {
+        @Override
+        protected void onPreExecute() {
+            progressBar.setVisibility(View.VISIBLE);
+        }
+
+        @Override
+        protected Void doInBackground(Void... params) {
+            FetchPosts fetchPosts = new FetchPosts(getApplicationContext());
+            fetchPosts.fetchPostsTask();
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            progressBar.setVisibility(View.INVISIBLE);
         }
 
         @Override
