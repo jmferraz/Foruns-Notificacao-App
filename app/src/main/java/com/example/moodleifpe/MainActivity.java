@@ -162,24 +162,12 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
-
         private List<Post> sortPosts(List<Post> list) {
             Collections.sort(list, new Comparator<Post>() {
                 public int compare(Post post1, Post post2) {
-                    int compareCourseName = post1.getCourseTitle().compareTo(post2.getCourseTitle());
-                    return compareCourseName == 0 ? compareByForumName(post1, post2)
-                            : post1.getCourseTitle().compareToIgnoreCase(post2.getCourseTitle());
+                    int compareDate = post1.getDate().compareTo(post2.getDate());
+                    return compareDate * (-1);
                 }
-
-                // If prices are equal, sorts by 'rating' property (desc).
-                public int compareByForumName(Post post1, Post post2) {
-                    // Sorts by 'Rating'. desc
-                    int compareForumName = post1.getForumTitle().compareTo(post2.getForumTitle());
-                    return compareForumName == 0 ? post1.getDate().compareTo(post2.getDate())
-                            : post1.getForumTitle().compareToIgnoreCase(post2.getForumTitle());
-                }
-
-
             });
             return list;
         }
