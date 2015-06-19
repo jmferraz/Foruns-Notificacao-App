@@ -12,7 +12,8 @@ public class ForumsAlarm {
     /**
      * ALARM_INTERVAL is 8 hours in milliseconds.
      */
-    public static final Integer ALARM_INTERVAL = 1000 * 60 * 3;//60 * 8;
+    public static final Integer ALARM_INTERVAL = 1000 * 60 * 60 * 6;//60 * 8;
+
 
     public static void startAlarm(Context context) {
         Intent alarmIntent = new Intent(context, AlarmReceiver.class);

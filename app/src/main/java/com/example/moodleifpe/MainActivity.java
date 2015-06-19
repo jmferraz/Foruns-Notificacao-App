@@ -91,7 +91,7 @@ public class MainActivity extends AppCompatActivity {
         Intent intent = new Intent(this, AlarmReceiver.class);
         PendingIntent alarmIntent = PendingIntent.getBroadcast(this, 0, intent, 0);
 
-        int interval = 1000 * 60 * 3;//* 60 * 8;
+        int interval = 1000 * 60 * 60 * 6;//* 60 * 8;
         alertManager.setRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), interval, alarmIntent);
         Log.i("com.example.moodleifpe", "--->Alarm Set");
     }
