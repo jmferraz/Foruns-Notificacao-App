@@ -68,12 +68,14 @@ public class FetchPosts {
     }
 
     private void savePostsToLocalDb(List<Post> posts) {
-        Log.i(this.getClass().getName(), "savePostsToLocalDb");
-        for (Post post : posts) {
-            localDb.insertPost(post);
+        if (!posts.isEmpty()) {
+            Log.i(this.getClass().getName(), "savePostsToLocalDb");
+            for (Post post : posts) {
+                localDb.insertPost(post);
+            }
+            //Sets current date on Local DB.
+            localDb.replaceDateOfLastFetch(Calendar.getInstance().getTime());
         }
-        //Sets current date on Local DB.
-        localDb.replaceDateOfLastFetch(Calendar.getInstance().getTime());
     }
 
     private List<Course> getCourses() throws InternetConnectionException {

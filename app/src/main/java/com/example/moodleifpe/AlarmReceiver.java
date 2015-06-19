@@ -34,5 +34,4 @@ public class AlarmReceiver extends BroadcastReceiver {
         setResultCode(Activity.RESULT_OK);
     }
 
-
 }

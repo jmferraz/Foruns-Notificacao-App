@@ -29,9 +29,6 @@ public class MainActivity extends AppCompatActivity {
 
     private AsyncTask asyncTask;
 
-    private PendingIntent pendingIntent;
-    private AlarmManager alertManager;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -63,9 +60,6 @@ public class MainActivity extends AppCompatActivity {
      * @return
      */
     private boolean configureAlarmSettings() {
-        // Retrieve a PendingIntent that will perform a broadcast
-        Intent alarmIntent = new Intent(this, AlarmReceiver.class);
-        pendingIntent = PendingIntent.getBroadcast(this, 0, alarmIntent, 0);
         //Setting initial date
         boolean inserted = setInitialDate();
         if (inserted) {
@@ -83,7 +77,6 @@ public class MainActivity extends AppCompatActivity {
         Date date = localDb.getDateOfLastCheck();
         if (date == null) {
             Calendar calendar = Calendar.getInstance();
-//            calendar.set(2015, Calendar.JUNE, 01, 0, 0);
             calendar.set(Calendar.HOUR_OF_DAY, 0);
             calendar.set(Calendar.MINUTE, 0);
             calendar.set(Calendar.SECOND, 0);
@@ -94,9 +87,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void startAlarm() {
-        alertManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-        int interval = ForumsAlarm.ALARM_INTERVAL;
-        alertManager.setRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), interval, pendingIntent);
+        AlarmManager alertManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+        Intent intent = new Intent(this, AlarmReceiver.class);
+        PendingIntent alarmIntent = PendingIntent.getBroadcast(this, 0, intent, 0);
+
+        int interval = 1000 * 60 * 3;//* 60 * 8;
+        alertManager.setRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), interval, alarmIntent);
         Log.i("com.example.moodleifpe", "--->Alarm Set");
     }
 
